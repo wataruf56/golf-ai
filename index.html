@@ -632,13 +632,13 @@ footer .logo { margin-bottom: 12px; font-size: 1.2rem; }
               <div class="phone-header-sub">PGA基準のAI解析</div>
             </div>
             <div class="phone-chat">
+              <div class="chat-bubble user">ドライバーの飛距離を伸ばしたい</div>
               <div class="chat-bubble user">🎥 スイング動画を送信</div>
               <div class="chat-bubble ai">解析中...あと数秒です⏳</div>
               <div class="chat-bubble ai">
-                <strong>あなたのスコア：72点</strong> 🎯<br><br>
-                切り返しのタイミングが<br>少し早い！ここを直すだけで<br>飛距離+15yd見込めます🚀
+                <strong>切り返しのタイミングが早い！</strong><br><br>
+                ここを直すだけで<br>飛距離+15yd見込めます🚀
               </div>
-              <div class="chat-bubble user">具体的にどう直す？</div>
             </div>
           </div>
         </div>
@@ -663,8 +663,8 @@ footer .logo { margin-bottom: 12px; font-size: 1.2rem; }
       <div class="step-card reveal">
         <div class="step-number">02</div>
         <div class="step-icon">🎥</div>
-        <h3>スイング動画をポンと送る</h3>
-        <p>練習場でもコースでも。スマホで撮ったらそのままLINEに送信。正面でも後方でも、アングルは自由。</p>
+        <h3>質問＋動画を送る</h3>
+        <p>「飛距離を伸ばしたい」など質問を入力して、スイング動画を送信。もちろん質問なしで解析だけもOK。</p>
       </div>
       <div class="step-card reveal">
         <div class="step-number">03</div>
@@ -684,6 +684,11 @@ footer .logo { margin-bottom: 12px; font-size: 1.2rem; }
     <p class="section-desc reveal">100球漫然と打っても上手くならない。でも、1球ごとに「何を意識するか」が分かったら？</p>
     <div class="features-grid">
       <div class="feature-card highlight reveal">
+        <span class="feature-emoji">💬</span>
+        <h3>動画＋質問で、あなた専用の回答</h3>
+        <p>「飛距離を伸ばしたい」「ダフりが多い」—— 質問を添えてスイング動画を送るだけ。AIコーチがあなたの動画を見て、悩みにピンポイントで答えます。</p>
+      </div>
+      <div class="feature-card reveal">
         <span class="feature-emoji">🧠</span>
         <h3>スイングを7つに分解して、全部採点</h3>
         <p>アドレス、テイクバック、トップ、切り返し、インパクト、フォロー、フィニッシュ。PGAプロ基準で各10点満点。お世辞なしの採点だから、本当の実力が見えます。</p>
@@ -697,11 +702,6 @@ footer .logo { margin-bottom: 12px; font-size: 1.2rem; }
         <span class="feature-emoji">📈</span>
         <h3>1ヶ月前の自分と、今の自分</h3>
         <p>過去のスイングと数値で比較。「あ、ちゃんと上手くなってる」が目に見えるから、練習が楽しくなります。</p>
-      </div>
-      <div class="feature-card reveal">
-        <span class="feature-emoji">💬</span>
-        <h3>「スライスが直らない」も聞ける</h3>
-        <p>気になっていることをテキストで添えるだけ。「飛距離を伸ばしたい」「ダフりが多い」など、あなたの悩みに合わせた解析になります。</p>
       </div>
       <div class="feature-card reveal">
         <span class="feature-emoji">⚡</span>
@@ -777,22 +777,34 @@ footer .logo { margin-bottom: 12px; font-size: 1.2rem; }
     <div class="section-label reveal">Pricing</div>
     <h2 class="section-title reveal">レッスン1回分の値段で、<br>1ヶ月ずっとコーチがつく。</h2>
     <p class="section-desc reveal" style="margin: 0 auto;">しかも初回は無料。まず1回試して、「これは使える」と思ったら続けてください。</p>
-    <div class="pricing-grid">
-      <div class="price-card recommended reveal" style="max-width: 400px; margin: 0 auto;">
-        <div class="price-badge">初回1回無料</div>
+    <div class="pricing-grid" style="display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;">
+      <div class="price-card reveal" style="max-width: 360px; flex: 1;">
+        <div class="price-plan">FREE</div>
+        <div class="price-amount">¥0</div>
+        <p class="price-desc">まずは無料で試してみてください。毎月1回、全機能が使えます。</p>
+        <ul class="price-features">
+          <li>毎月1回のAI解析</li>
+          <li>全4モード利用可能</li>
+          <li>7フェーズの採点レポート</li>
+          <li>LINE完結（アプリ不要）</li>
+        </ul>
+        <a href="#cta" class="btn-price">無料で始める</a>
+      </div>
+      <div class="price-card recommended reveal" style="max-width: 360px; flex: 1;">
+        <div class="price-badge">おすすめ</div>
         <div class="price-plan">PRO</div>
         <div class="price-amount">¥1,000<small>/月</small></div>
         <p class="price-desc">月10回、好きなタイミングでプロ基準の解析。練習のたびにコーチがいる感覚。</p>
         <ul class="price-features">
           <li>月10回のAI解析</li>
+          <li>全4モード利用可能</li>
           <li>7フェーズの採点レポート</li>
           <li>プロとの比較解析</li>
           <li>過去の自分との比較</li>
-          <li>自由質問で深掘りアドバイス</li>
-          <li>優先解析（待ち時間短縮）</li>
+          <li>動画＋質問で自由に相談</li>
           <li>LINE完結（アプリ不要）</li>
         </ul>
-        <a href="#cta" class="btn-price primary">まずは1回、無料で採点してもらう</a>
+        <a href="#cta" class="btn-price primary">まずは無料で試してみる</a>
       </div>
     </div>
   </div>
