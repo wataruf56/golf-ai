@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwingLens AI - ゴルフスイング分析 AI コーチング</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            color: #2d3436;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #f0e6ff 0%, #e6fff0 100%);
+            background-attachment: fixed;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            color: #1a1a2e;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 6vw, 3rem);
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            color: #1a1a2e;
+        }
+
+        h3 {
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            margin-bottom: 1rem;
+            color: #2d3436;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        p {
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            color: #555;
+        }
+
+        /* Layout */
+        section {
+            width: 100%;
+            padding: 5rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .container-narrow {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Background Blobs */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob-1 {
+            width: 300px;
+            height: 300px;
+            background: #9d4edd;
+            top: 5%;
+            left: -5%;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .blob-2 {
+            width: 250px;
+            height: 250px;
+            background: #3a86ff;
+            top: 30%;
+            right: 5%;
+            animation: float 25s infinite ease-in-out reverse;
+        }
+
+        .blob-3 {
+            width: 200px;
+            height: 200px;
+            background: #06ffa5;
+            bottom: 10%;
+            left: 10%;
+            animation: float 22s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            25% { transform: translateY(-30px) translateX(20px); }
+            50% { transform: translateY(-60px) translateX(-20px); }
+            75% { transform: translateY(-30px) translateX(30px); }
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 6rem 2rem;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            width: 100%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-eyebrow {
+            display: inline-block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            background: rgba(157, 78, 221, 0.15);
+            color: #7c3aed;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title {
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #1a1a2e 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 2.5rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 1.2rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Noto Sans JP', sans-serif;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #7c3aed;
+            border: 2px solid #7c3aed;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.2);
+        }
+
+        .line-icon {
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
+        .hero-phone {
+            position: relative;
+            z-index: 2;
+            perspective: 1000px;
+        }
+
+        .phone-mockup {
+            width: 100%;
+            max-width: 320px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5ff 100%);
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 20px 60px rgba(124, 58, 237, 0.2);
+            border: 3px solid white;
+            transform: rotateY(-10deg) rotateX(5deg);
+            transition: transform 0.3s ease;
+        }
+
+        .phone-mockup:hover {
+            transform: rotateY(-5deg) rotateX(2deg);
+        }
+
+        .phone-screen {
+            width: 100%;
+            background: linear-gradient(180deg, #7c3aed 0%, #6366f1 100%);
+            border-radius: 30px;
+            overflow: hidden;
+            aspect-ratio: 9/20;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .phone-notch {
+            background: #000;
+            height: 25px;
+            border-radius: 0 0 20px 20px;
+            margin: 0 auto;
+            width: 150px;
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            justify-content: flex-end;
+            background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(245,245,255,0.95) 100%);
+        }
+
+        .chat-bubble {
+            padding: 0.8rem 1rem;
+            border-radius: 18px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bubble-user {
+            background: #7c3aed;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bubble-ai {
+            background: rgba(124, 58, 237, 0.15);
+            color: #2d3436;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .score-display {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 0.8rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #7c3aed;
+            margin-top: 0.5rem;
+        }
+
+        /* Card Styling */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.15);
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            position: relative;
+            margin-top: 3rem;
+        }
+
+        .step-card {
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
+        }
+
+        .step-card h3 {
+            margin-bottom: 1rem;
+        }
+
+        .step-card p {
+            font-size: 0.95rem;
+        }
+
+        .connecting-line {
+            position: absolute;
+            top: 80px;
+            left: 30%;
+            right: 30%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #7c3aed 50%, transparent 100%);
+            z-index: 1;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .connecting-line {
+                display: none;
+            }
+        }
+
+        /* Features Section */
+        .features {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 2rem 1.5rem;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-item h4 {
+            margin-bottom: 0.8rem;
+        }
+
+        .feature-item p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Score Demo Section */
+        .score-demo {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .demo-text h3 {
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-improvements {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.1);
+        }
+
+        .improvement-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .improvement-item:last-child {
+            border-bottom: none;
+        }
+
+        .improvement-label {
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        .improvement-badge {
+            background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .score-bars {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.1);
+        }
+
+        .phase-score {
+            margin-bottom: 1.5rem;
+        }
+
+        .phase-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .score-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed 0%, #6366f1 100%);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 2s ease;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+        }
+
+        /* Pricing Section */
+        .pricing {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .pricing-content {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            border: 2px solid #7c3aed;
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(124, 58, 237, 0.2);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.15);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        .badge-popular {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .plan-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2d3436;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #7c3aed;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price-period {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .plan-features li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .checkmark {
+            color: #06ffa5;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .plan-cta {
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+
+        /* Reviews Section */
+        .reviews {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .review-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.1);
+        }
+
+        .stars {
+            color: #ffc107;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .review-text {
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .review-author {
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 0.3rem;
+        }
+
+        .review-role {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        /* Final CTA Section */
+        .final-cta {
+            background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+            border-radius: 30px;
+            margin: 5rem 2rem;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 20px 60px rgba(124, 58, 237, 0.3);
+        }
+
+        .final-cta h2 {
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .final-cta p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .final-cta .btn {
+            background: white;
+            color: #7c3aed;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .final-cta .btn:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-3px);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(124, 58, 237, 0.1);
+            color: #666;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #7c3aed;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #6366f1;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .demo-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .pricing-card.featured:hover {
+                transform: translateY(-5px);
+            }
+
+            section {
+                padding: 3rem 1.5rem;
+            }
+
+            .hero {
+                padding: 4rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .phone-mockup {
+                max-width: 280px;
+                margin: 0 auto;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-content fade-in-up">
+                    <span class="hero-eyebrow">AI ゴルフコーチング</span>
+                    <h1 class="hero-title">SwingLens AI</h1>
+                    <p class="hero-subtitle">
+                        LINEでゴルフスイング動画を送るだけ。<br>
+                        AIが7段階の詳細分析で、<br>
+                        あなたのスイングを即座に改善
+                    </p>
+                    <div class="cta-buttons">
+                        <a href="https://line.me/R/ti/p/@swinglensai" class="btn btn-primary">
+                            <svg class="line-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19.5 1H4.5C2.57 1 1 2.57 1 4.5v15C1 21.43 2.57 23 4.5 23h15c1.93 0 3.5-1.57 3.5-3.5v-15C23 2.57 21.43 1 19.5 1zm-4 18h-2v-9h2v9zm-7-9h2v9H8.5v-9zm9.5 10c0 .83-.67 1.5-1.5 1.5h-12c-.83 0-1.5-.67-1.5-1.5v-13c0-.83.67-1.5 1.5-1.5h12c.83 0 1.5.67 1.5 1.5v13z"/>
+                            </svg>
+                            初回無料で試してみる
+                        </a>
+                        <a href="#pricing" class="btn btn-secondary">料金を見る</a>
+                    </div>
+                </div>
+
+                <div class="hero-phone fade-in-up">
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <div class="phone-notch"></div>
+                            <div class="chat-area">
+                                <div class="chat-bubble bubble-user">
+                                    スイング動画です 📹
+                                </div>
+                                <div class="chat-bubble bubble-ai">
+                                    分析中です...
+                                </div>
+                                <div class="chat-bubble bubble-ai">
+                                    分析完了！
+                                    <div class="score-display">総合スコア: 78/100</div>
+                                </div>
+                                <div class="chat-bubble bubble-ai">
+                                    改善点トップ3:
+                                    <div class="score-display">
+                                        1. 体重移動<br>
+                                        2. タイミング<br>
+                                        3. フォロー
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2>3ステップで簡単</h2>
+            <p style="text-align: center; max-width: 600px; margin: 0 auto 3rem; color: #666;">
+                LINEでSwingLens AIと友達になれば、いつでもどこでもあなたのゴルフスイングを分析できます
+            </p>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>LINE友達追加</h3>
+                    <p>SwingLens AIをLINEで友達追加します。無料で始められます。</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>スイング動画を送信</h3>
+                    <p>ゴルフスイングの動画をチャットで送るだけ。複数角度での送信もOK。</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>AI分析を受け取る</h3>
+                    <p>7段階の詳細スコア、改善点トップ3、プロとの比較が即座に届きます。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
+            <h2 style="text-align: center;">主な機能</h2>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <h4>7段階スコア分析</h4>
+                    <p>Address, Takeaway, Top, Transition, Impact, Follow-through, Finish の各フェーズを100点満点で評価</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">🎯</div>
+                    <h4>改善点TOP 3</h4>
+                    <p>あなたのスイングに最も必要な3つの改善点を自動抽出</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">⭐</div>
+                    <h4>優先度付け</h4>
+                    <p>最も効果的な改善ポイント（#1 Priority Fix）を明確に指摘</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">🏌️</div>
+                    <h4>プロとの比較</h4>
+                    <p>PGAツアープロのスイングデータと比較可能</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">📈</div>
+                    <h4>成長の可視化</h4>
+                    <p>過去のスイングとの比較で自分の進歩をリアルタイムで確認</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <h4>瞬時フィードバック</h4>
+                    <p>LINE上で数秒で結果が届く。場所を選ばず練習場からすぐに確認</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Score Demo -->
+    <section class="score-demo">
+        <div class="container">
+            <div class="demo-content">
+                <div class="demo-text">
+                    <h3>あなたのスイングを7段階で徹底分析</h3>
+                    <p>
+                        SwingLens AIは、ゴルフスイングの全7フェーズを独立した角度から評価します。
+                        各フェーズで何が上手く、何を改善すべきかが一目瞭然。
+                    </p>
+                    <p>
+                        合計スコア以上に、個別フェーズのスコアから自分の弱点を特定できるため、
+                        効率的に練習に集中できます。
+                    </p>
+
+                    <div class="demo-improvements">
+                        <h4 style="margin-bottom: 1.5rem;">改善点TOP 3 の例</h4>
+
+                        <div class="improvement-item">
+                            <span class="improvement-label">1. 体重移動タイミング</span>
+                            <span class="improvement-badge">高優先度</span>
+                        </div>
+
+                        <div class="improvement-item">
+                            <span class="improvement-label">2. トップでの体の角度</span>
+                            <span class="improvement-badge">中優先度</span>
+                        </div>
+
+                        <div class="improvement-item">
+                            <span class="improvement-label">3. フォロースルー</span>
+                            <span class="improvement-badge">低優先度</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="score-bars">
+                    <h4 style="margin-bottom: 2rem; text-align: center;">スイングスコア詳細</h4>
+
+                    <div class="phase-score">
+                        <div class="phase-label">
+                            <span>Address</span>
+                            <span>85</span>
+                        </div>
+                        <div class="score-bar-bg">
+                            <div class="score-bar-fill" style="width: 85%; animation-delay: 0.1s;"></div>
+                        </div>
+                    </div>
+
+                    <div class="phase-score">
+                        <div class="phase-label">
+                            <span>Takeaway</span>
+                            <span>72</span>
+                        </div>
+                        <div class="score-bar-bg">
+                            <div class="score-bar-fill" style="width: 72%; animation-delay: 0.2s;"></div>
+                        </div>
+                    </div>
+
+                    <div class="phase-score">
+                        <div class="phase-label">
+                            <span>Top</span>
+                            <span>68</span>
+                        </div>
+                        <div class="score-bar-bg">
+                            <div class="score-bar-fill" style="width: 68%; animation-delay: 0.3s;"></div>
+                        </div>
+                    </div>
+
+                    <div class="phase-score">
+                        <div class="phase-label">
+                            <span>Transition</span>
+                            <span>75</span>
+                        </div>
+                        <div class="score-bar-bg">
+                            <div class="score-bar-fill" style="width: 75%; animation-delay: 0.4s;"></div>
+                        </div>
+                    </div>
+
+                    <div class="phase-score">
+                        <div class="phase-label">
+                            <span>Impact</span>
+                            <span>92</span>
+                        </div>
+                        <div class="score-bar-bg">
+                            <div class="score-bar-fill" style="width: 92%; animation-delay: 0.5s;"></div>
+                        </div>
+                    </div>
+
+                    <div class="phase-score">
+                        <div class="phase-label">
+                            <span>Follow-through</span>
+                            <span>80</span>
+                        </div>
+                        <div class="score-bar-bg">
+                            <div class="score-bar-fill" style="width: 80%; animation-delay: 0.6s;"></div>
+                        </div>
+                    </div>
+
+                    <div class="phase-score">
+                        <div class="phase-label">
+                            <span>Finish</span>
+                            <span>88</span>
+                        </div>
+                        <div class="score-bar-bg">
+                            <div class="score-bar-fill" style="width: 88%; animation-delay: 0.7s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="pricing-content">
+                <h2>シンプルで透明性のある料金</h2>
+                <p style="color: #666;">初回1回無料。2回目以降は月¥1,000で10回解析。（LINE IDごと）</p>
+            </div>
+
+            <div class="pricing-cards">
+                <div class="pricing-card featured" style="margin: 0 auto; max-width: 100%;">
+                    <div class="badge-popular">初回1回無料</div>
+                    <h3 class="plan-name">プロプラン</h3>
+                    <div class="plan-price">¥1,000</div>
+                    <p class="plan-price-period">/月 10回の分析</p>
+
+                    <ul class="plan-features">
+                        <li><span class="checkmark">✓</span> 月10回の分析</li>
+                        <li><span class="checkmark">✓</span> 7段階スコア評価</li>
+                        <li><span class="checkmark">✓</span> 改善点TOP 3</li>
+                        <li><span class="checkmark">✓</span> プロとの比較機能</li>
+                        <li><span class="checkmark">✓</span> 過去のスイングとの比較</li>
+                        <li><span class="checkmark">✓</span> 優先度付きフィードバック</li>
+                        <li><span class="checkmark">✓</span> 詳細レポートのダウンロード</li>
+                        <li><span class="checkmark">✓</span> LINEでいつでも利用可能</li>
+                    </ul>
+
+                    <a href="https://line.me/R/ti/p/@swinglensai" class="btn btn-primary plan-cta">
+                        <svg class="line-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.5 1H4.5C2.57 1 1 2.57 1 4.5v15C1 21.43 2.57 23 4.5 23h15c1.93 0 3.5-1.57 3.5-3.5v-15C23 2.57 21.43 1 19.5 1zm-4 18h-2v-9h2v9zm-7-9h2v9H8.5v-9zm9.5 10c0 .83-.67 1.5-1.5 1.5h-12c-.83 0-1.5-.67-1.5-1.5v-13c0-.83.67-1.5 1.5-1.5h12c.83 0 1.5.67 1.5 1.5v13z"/>
+                        </svg>
+                        初回無料で試してみる
+                    </a>
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-top: 3rem; color: #999; font-size: 0.9rem;">
+                クレジットカードは不要です。いつでもキャンセルできます。
+            </p>
+        </div>
+    </section>
+
+    <!-- Reviews -->
+    <section class="reviews">
+        <div class="container">
+            <h2 style="text-align: center;">ユーザーの声</h2>
+
+            <div class="reviews-grid">
+                <div class="review-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="review-text">
+                        「毎回プロからのレッスンを受けている感覚です。どこを改善すべきか一目瞭然で、練習が効率的になりました。」
+                    </p>
+                    <div class="review-author">田中太郎</div>
+                    <div class="review-role">アマチュアゴルファー</div>
+                </div>
+
+                <div class="review-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="review-text">
+                        「プロとの比較機能で自分のスイングの何が違うのか理解できた。これなら練習も楽しくなります。」
+                    </p>
+                    <div class="review-author">鈴木花子</div>
+                    <div class="review-role">ゴルフレッスン受講中</div>
+                </div>
+
+                <div class="review-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="review-text">
+                        「LINEで送るだけという手軽さと、瞬時にフィードバックが返ってくる速さが最高。これ以上のツールはありません。」
+                    </p>
+                    <div class="review-author">佐藤次郎</div>
+                    <div class="review-role">プロゴルファー志望</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section>
+        <div class="final-cta">
+            <h2>今すぐあなたのゴルフを改善する</h2>
+            <p>SwingLens AIと友達になって、初回1回無料でスイング分析を始めましょう</p>
+            <a href="https://line.me/R/ti/p/@swinglensai" class="btn">
+                <svg class="line-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.5 1H4.5C2.57 1 1 2.57 1 4.5v15C1 21.43 2.57 23 4.5 23h15c1.93 0 3.5-1.57 3.5-3.5v-15C23 2.57 21.43 1 19.5 1zm-4 18h-2v-9h2v9zm-7-9h2v9H8.5v-9zm9.5 10c0 .83-.67 1.5-1.5 1.5h-12c-.83 0-1.5-.67-1.5-1.5v-13c0-.83.67-1.5 1.5-1.5h12c.83 0 1.5.67 1.5 1.5v13z"/>
+                </svg>
+                初回無料で試してみる
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#hero">ホーム</a>
+            <a href="#pricing">料金</a>
+            <a href="#">プライバシーポリシー</a>
+            <a href="#">利用規約</a>
+            <a href="#">お問い合わせ</a>
+        </div>
+        <p>&copy; 2026 SwingLens AI. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-up');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards and elements
+        document.querySelectorAll('.card, .feature-item, .review-card, .pricing-card, .step-card').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && document.querySelector(href)) {
+                    e.preventDefault();
+                    document.querySelector(href).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Trigger score bar animations on scroll
+        const scoreBarContainer = document.querySelector('.score-bars');
+        if (scoreBarContainer) {
+            const scoreObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Score bars will animate automatically due to CSS animation
+                        scoreObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            scoreObserver.observe(scoreBarContainer);
+        }
+
+        // Add subtle interaction feedback
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.02)';
+            });
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Observe cards for fade-in animation
+        const cards = document.querySelectorAll('.card, .pricing-card, .review-card, .feature-item, .step-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.animation = `fadeInUp 0.6s ease forwards`;
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+    </script>
+</body>
+</html>

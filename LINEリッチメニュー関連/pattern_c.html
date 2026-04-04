@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 2500px; height: 843px; overflow: hidden; }
+.container {
+  width: 2500px;
+  height: 843px;
+  display: flex;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%);
+  font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+}
+.cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 3px solid rgba(22,101,52,0.1);
+}
+.cell:last-child { border-right: none; }
+.icon-box {
+  width: 150px;
+  height: 150px;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  font-size: 72px;
+}
+.cell:nth-child(1) .icon-box {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 8px 24px rgba(22,163,74,0.3);
+}
+.cell:nth-child(2) .icon-box {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 8px 24px rgba(37,99,235,0.3);
+}
+.cell:nth-child(3) .icon-box {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 8px 24px rgba(234,88,12,0.3);
+}
+.title {
+  color: #1a2e1a;
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  margin-bottom: 14px;
+}
+.subtitle {
+  color: #4a7a4a;
+  font-size: 28px;
+  font-weight: 500;
+}
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+}
+.cell:nth-child(1) .top-bar { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.cell:nth-child(2) .top-bar { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+.cell:nth-child(3) .top-bar { background: linear-gradient(90deg, #f97316, #ea580c); }
+.label {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #16a34a;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  padding: 6px 24px;
+  border-radius: 16px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="cell">
+    <div class="top-bar"></div>
+    <div class="label">おすすめ</div>
+    <div class="icon-box">🏌️</div>
+    <div class="title">スイング解析</div>
+    <div class="subtitle">動画を送ってAI解析</div>
+  </div>
+  <div class="cell">
+    <div class="top-bar"></div>
+    <div class="icon-box">📖</div>
+    <div class="title">使い方</div>
+    <div class="subtitle">操作ガイドを見る</div>
+  </div>
+  <div class="cell">
+    <div class="top-bar"></div>
+    <div class="icon-box">💬</div>
+    <div class="title">問い合わせ</div>
+    <div class="subtitle">お気軽にどうぞ</div>
+  </div>
+</div>
+</body>
+</html>

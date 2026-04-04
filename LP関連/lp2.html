@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwingLens AI - AI ゴルフコーチング BOT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #1a6b3c;
+            --light-green: #e8f5e9;
+            --accent-green: #2e7d54;
+            --dark-text: #1a1a1a;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            color: var(--dark-text);
+            background: linear-gradient(135deg, var(--light-green) 0%, #f0f9f6 100%);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Subtle grass texture pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(26, 107, 60, 0.02) 2px, rgba(26, 107, 60, 0.02) 4px),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(26, 107, 60, 0.02) 2px, rgba(26, 107, 60, 0.02) 4px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        main {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Utility classes */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            padding: 20px 0;
+            box-shadow: 0 2px 8px rgba(26, 107, 60, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-green);
+            letter-spacing: -1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-text);
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-green);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 100px 0;
+            text-align: center;
+            background: linear-gradient(135deg, var(--light-green) 0%, rgba(26, 107, 60, 0.03) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(26, 107, 60, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 56px;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .hero .subtitle {
+            font-size: 20px;
+            color: var(--dark-text);
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .hero-description {
+            font-size: 16px;
+            color: #555;
+            max-width: 600px;
+            margin: 0 auto 50px;
+            line-height: 1.8;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--accent-green) 100%);
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 24px rgba(26, 107, 60, 0.25);
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(26, 107, 60, 0.35);
+        }
+
+        /* LINE Icon SVG */
+        .line-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .fade-in-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 44px;
+            color: var(--primary-green);
+            text-align: center;
+            margin-bottom: 60px;
+            font-weight: 800;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .step {
+            background: var(--light-green);
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .step:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(26, 107, 60, 0.15);
+        }
+
+        .step-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .step h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--dark-text);
+        }
+
+        .step p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.7;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 0;
+            background: linear-gradient(135deg, rgba(26, 107, 60, 0.03) 0%, white 100%);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-green);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateX(8px);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            color: var(--primary-green);
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Score Demo Section */
+        .score-demo {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .demo-container {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+        }
+
+        .demo-text h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .demo-text p {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .score-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .score-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .score-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--dark-text);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .score-bar-bg {
+            flex: 1;
+            height: 32px;
+            background: var(--light-green);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-green) 0%, var(--accent-green) 100%);
+            border-radius: 16px;
+            transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+        }
+
+        .score-value {
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 100px 0;
+            background: linear-gradient(135deg, var(--light-green) 0%, rgba(26, 107, 60, 0.03) 100%);
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 16px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(26, 107, 60, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            border: 3px solid var(--primary-green);
+            transform: scale(1.05);
+            box-shadow: 0 16px 48px rgba(26, 107, 60, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-green);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            display: none;
+        }
+
+        .pricing-card.featured .pricing-badge {
+            display: block;
+        }
+
+        .plan-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            color: var(--primary-green);
+            margin: 20px 0 20px;
+            font-weight: 700;
+        }
+
+        .plan-price {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .price {
+            font-size: 48px;
+            color: var(--primary-green);
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        .price-period {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .features-list {
+            text-align: left;
+            margin: 30px 0;
+            padding: 30px 0;
+            border-top: 1px solid var(--light-green);
+            border-bottom: 1px solid var(--light-green);
+        }
+
+        .features-list li {
+            list-style: none;
+            padding: 10px 0;
+            font-size: 14px;
+            color: #666;
+            padding-left: 28px;
+            position: relative;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--primary-green);
+            font-weight: 700;
+        }
+
+        .pricing-card .cta-button {
+            width: 100%;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        /* Reviews Section */
+        .reviews {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .review-card {
+            background: var(--light-green);
+            padding: 35px;
+            border-radius: 12px;
+            border-top: 4px solid var(--primary-green);
+        }
+
+        .stars {
+            color: #FFD700;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .review-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.7;
+            font-style: italic;
+        }
+
+        .reviewer-name {
+            font-weight: 700;
+            color: var(--primary-green);
+            font-size: 15px;
+        }
+
+        .reviewer-title {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* Final CTA Section */
+        .final-cta {
+            padding: 80px 0;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--accent-green) 100%);
+            color: white;
+        }
+
+        .final-cta h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 44px;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .final-cta p {
+            font-size: 18px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .final-cta .cta-button {
+            background: white;
+            color: var(--primary-green);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .final-cta .cta-button:hover {
+            background: var(--light-green);
+            color: var(--primary-green);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark-text);
+            color: white;
+            padding: 50px 0 30px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: var(--light-green);
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--light-green);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 30px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero {
+                padding: 60px 0;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-text h2 {
+                font-size: 28px;
+            }
+
+            .final-cta h2 {
+                font-size: 32px;
+            }
+
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">SwingLens AI</div>
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="#how-it-works">使い方</a></li>
+                        <li><a href="#features">機能</a></li>
+                        <li><a href="#pricing">価格</a></li>
+                        <li><a href="#reviews">レビュー</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>AI ゴルフコーチが<br>あなたのスイングを解析</h1>
+                    <p class="subtitle">LINE で動画を送るだけ</p>
+                    <p class="hero-description">
+                        SwingLens AI は、あなたのゴルフスイング動画を AI が即座に分析し、<br>
+                        7 段階スコアリングと改善点を提示する革新的なコーチングサービスです。
+                    </p>
+                    <a href="https://line.me/R/ti/p/@swinglens" class="cta-button" target="_blank">
+                        <svg class="line-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 5.58 2 10c0 3.25 2.36 6.06 5.64 6.74-.22.88-.72 2.46-1.64 4.46 3.06-.5 5.76-1.88 7.38-3.66 1.14.32 2.34.5 3.62.5 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/>
+                        </svg>
+                        無料で試す
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="how-it-works" id="how-it-works">
+            <div class="container">
+                <h2 class="section-title">使い方</h2>
+                <div class="steps">
+                    <div class="step fade-in-on-scroll">
+                        <div class="step-number">1</div>
+                        <h3>LINE で友達追加</h3>
+                        <p>SwingLens AI を LINE の友達に追加します。ボタンクリックで数秒で完了！</p>
+                    </div>
+                    <div class="step fade-in-on-scroll">
+                        <div class="step-number">2</div>
+                        <h3>動画を送信</h3>
+                        <p>あなたのゴルフスイング動画を LINE チャットで送信するだけです。</p>
+                    </div>
+                    <div class="step fade-in-on-scroll">
+                        <div class="step-number">3</div>
+                        <h3>AI が分析</h3>
+                        <p>最先端 AI がスイングを 7 段階で評価し、改善点をすぐに提示します。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <div class="container">
+                <h2 class="section-title">主な機能</h2>
+                <div class="features-grid">
+                    <div class="feature-card fade-in-on-scroll">
+                        <div class="feature-icon">📊</div>
+                        <h3>7 段階スコアリング</h3>
+                        <p>アドレス、テイクバック、トップ、移行、インパクト、フォロースルー、フィニッシュを 100 点満点で評価。</p>
+                    </div>
+                    <div class="feature-card fade-in-on-scroll">
+                        <div class="feature-icon">🎯</div>
+                        <h3>改善点を提示</h3>
+                        <p>トップ 3 の改善点と最優先の修正ポイントを明確に指摘します。</p>
+                    </div>
+                    <div class="feature-card fade-in-on-scroll">
+                        <div class="feature-icon">👥</div>
+                        <h3>プロとの比較</h3>
+                        <p>あなたのスイングをプロのスイングと比較して、差を可視化します。</p>
+                    </div>
+                    <div class="feature-card fade-in-on-scroll">
+                        <div class="feature-icon">📈</div>
+                        <h3>成長を追跡</h3>
+                        <p>過去のスイングとの比較で、あなたの上達を実感できます。</p>
+                    </div>
+                    <div class="feature-card fade-in-on-scroll">
+                        <div class="feature-icon">⚡</div>
+                        <h3>即座の分析</h3>
+                        <p>動画を送信してから数秒で AI の分析結果を受け取ります。</p>
+                    </div>
+                    <div class="feature-card fade-in-on-scroll">
+                        <div class="feature-icon">💬</div>
+                        <h3>LINE で完結</h3>
+                        <p>アプリのダウンロード不要。LINE だけで全て完結します。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Score Demo Section -->
+        <section class="score-demo" id="score-demo">
+            <div class="container">
+                <div class="demo-container">
+                    <div class="demo-text fade-in-on-scroll">
+                        <h2>分析結果の例</h2>
+                        <p>SwingLens AI が実際にあなたのスイングを分析すると、このような詳細なスコアが表示されます。</p>
+                        <p>各段階のスコアから、どこを改善すればよいかが一目瞭然。プロのアドバイスに基づいた分析で、確実な上達をサポートします。</p>
+                    </div>
+                    <div class="fade-in-on-scroll">
+                        <div class="score-bars">
+                            <div class="score-bar">
+                                <div class="score-label">アドレス</div>
+                                <div class="score-bar-bg">
+                                    <div class="score-bar-fill" style="width: 0%;" data-target="85">
+                                        <span class="score-value"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-label">テイクバック</div>
+                                <div class="score-bar-bg">
+                                    <div class="score-bar-fill" style="width: 0%;" data-target="72">
+                                        <span class="score-value"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-label">トップ</div>
+                                <div class="score-bar-bg">
+                                    <div class="score-bar-fill" style="width: 0%;" data-target="68">
+                                        <span class="score-value"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-label">移行</div>
+                                <div class="score-bar-bg">
+                                    <div class="score-bar-fill" style="width: 0%;" data-target="75">
+                                        <span class="score-value"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-label">インパクト</div>
+                                <div class="score-bar-bg">
+                                    <div class="score-bar-fill" style="width: 0%;" data-target="82">
+                                        <span class="score-value"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-label">フォロースルー</div>
+                                <div class="score-bar-bg">
+                                    <div class="score-bar-fill" style="width: 0%;" data-target="78">
+                                        <span class="score-value"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-label">フィニッシュ</div>
+                                <div class="score-bar-bg">
+                                    <div class="score-bar-fill" style="width: 0%;" data-target="88">
+                                        <span class="score-value"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="pricing" id="pricing">
+            <div class="container">
+                <h2 class="section-title">料金プラン</h2>
+                <div class="pricing-cards" style="justify-content: center;">
+                    <div class="pricing-card featured fade-in-on-scroll">
+                        <div class="pricing-badge">初回1回無料</div>
+                        <div class="plan-name">プロ</div>
+                        <div class="plan-price">月額</div>
+                        <div class="price">¥1,000</div>
+                        <p class="plan-description">初回1回無料（LINE ID当たり1回）。2回目以降は月¥1,000で10回解析</p>
+                        <ul class="features-list">
+                            <li>月 10 回の分析</li>
+                            <li>7 段階スコアリング</li>
+                            <li>改善点の詳細分析</li>
+                            <li>プロとの比較分析</li>
+                            <li>過去分析との比較</li>
+                            <li>優先サポート</li>
+                            <li>成長レポート</li>
+                            <li>LINE完結</li>
+                        </ul>
+                        <a href="https://line.me/R/ti/p/@swinglens" class="cta-button" target="_blank">
+                            <svg class="line-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 5.58 2 10c0 3.25 2.36 6.06 5.64 6.74-.22.88-.72 2.46-1.64 4.46 3.06-.5 5.76-1.88 7.38-3.66 1.14.32 2.34.5 3.62.5 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/>
+                            </svg>
+                            初回無料で試してみる
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reviews Section -->
+        <section class="reviews" id="reviews">
+            <div class="container">
+                <h2 class="section-title">ユーザーレビュー</h2>
+                <div class="reviews-grid">
+                    <div class="review-card fade-in-on-scroll">
+                        <div class="stars">★★★★★</div>
+                        <p class="review-text">「プロのアドバイスを自分で受けられるなんて。毎日送って練習しています。1 ヶ月で 10 打縮まりました！」</p>
+                        <div class="reviewer-name">田中太郎さん</div>
+                        <div class="reviewer-title">ゴルフ歴 3 年</div>
+                    </div>
+                    <div class="review-card fade-in-on-scroll">
+                        <div class="stars">★★★★★</div>
+                        <p class="review-text">「スイングの細かい部分まで分析してくれて、具体的な改善策が提示されるのが良い。値段も安くて続けやすい。」</p>
+                        <div class="reviewer-name">鈴木花子さん</div>
+                        <div class="reviewer-title">ゴルフ歴 5 年</div>
+                    </div>
+                    <div class="review-card fade-in-on-scroll">
+                        <div class="stars">★★★★★</div>
+                        <p class="review-text">「LINE で簡単に送れるし、分析も早い。プロとの比較で自分のレベルが見えるのが良いモチベーション。」</p>
+                        <div class="reviewer-name">佐藤健一さん</div>
+                        <div class="reviewer-title">ゴルフ愛好家</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA Section -->
+        <section class="final-cta">
+            <div class="container">
+                <h2>今すぐ SwingLens AI を始めよう</h2>
+                <p>初回1回無料でお試し。2回目以降は月¥1,000で10回の解析を受けられます。</p>
+                <a href="https://line.me/R/ti/p/@swinglens" class="cta-button" target="_blank">
+                    <svg class="line-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 5.58 2 10c0 3.25 2.36 6.06 5.64 6.74-.22.88-.72 2.46-1.64 4.46 3.06-.5 5.76-1.88 7.38-3.66 1.14.32 2.34.5 3.62.5 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/>
+                    </svg>
+                    初回無料で試してみる
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>SwingLens AI</h3>
+                    <p>AI ゴルフコーチングサービス。あなたのスイングを科学し、上達をサポートします。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>サービス</h3>
+                    <ul>
+                        <li><a href="#how-it-works">使い方</a></li>
+                        <li><a href="#features">機能</a></li>
+                        <li><a href="#pricing">価格</a></li>
+                        <li><a href="#reviews">レビュー</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>サポート</h3>
+                    <ul>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">お問い合わせ</a></li>
+                        <li><a href="#">プライバシーポリシー</a></li>
+                        <li><a href="#">利用規約</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 SwingLens AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-on-scroll').forEach(element => {
+            observer.observe(element);
+        });
+
+        // Score bar animation
+        const scoreObserverOptions = {
+            threshold: 0.5,
+            rootMargin: '0px'
+        };
+
+        const scoreObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const scoreBar = entry.target;
+                    const bars = scoreBar.querySelectorAll('.score-bar-fill');
+
+                    bars.forEach(bar => {
+                        const target = parseInt(bar.getAttribute('data-target'));
+                        animateScoreBar(bar, target);
+                    });
+
+                    scoreObserver.unobserve(scoreBar);
+                }
+            });
+        }, scoreObserverOptions);
+
+        function animateScoreBar(element, target) {
+            let current = 0;
+            const increment = target / 30;
+            const interval = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(interval);
+                }
+                element.style.width = current + '%';
+                element.querySelector('.score-value').textContent = Math.round(current);
+            }, 30);
+        }
+
+        const scoreSection = document.querySelector('.score-demo');
+        if (scoreSection) {
+            scoreObserver.observe(scoreSection);
+        }
+
+        // Mobile menu toggle (for future implementation)
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+            });
+        }
+    </script>
+</body>
+</html>

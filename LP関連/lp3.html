@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwingLens AI - ゴルフスイング分析 AI コーチング</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #0a0a0a;
+            color: #f5f5f5;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'EB Garamond', serif;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 1rem;
+        }
+
+        h3 {
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+        }
+
+        /* ===== COLORS & GRADIENTS ===== */
+        :root {
+            --gold-primary: #c9a84c;
+            --gold-light: #e8d48b;
+            --black-bg: #0a0a0a;
+            --black-card: #1a1a1a;
+            --text-light: #f5f5f5;
+            --text-muted: #b0b0b0;
+            --gold-gradient: linear-gradient(135deg, #c9a84c 0%, #e8d48b 100%);
+            --gold-glow: 0 0 20px rgba(201, 168, 76, 0.3);
+        }
+
+        .gold-text {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gold-border {
+            border: 1px solid var(--gold-primary);
+        }
+
+        .gold-accent {
+            color: var(--gold-light);
+        }
+
+        /* ===== CONTAINER & SPACING ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        section {
+            padding: 5rem 0;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 2.5rem;
+            font-size: 1rem;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-weight: 700;
+            text-decoration: none;
+            border: 2px solid var(--gold-primary);
+            background: transparent;
+            color: var(--gold-light);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover {
+            box-shadow: var(--gold-glow), inset 0 0 20px rgba(201, 168, 76, 0.1);
+            background: rgba(201, 168, 76, 0.05);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--gold-gradient);
+            color: #0a0a0a;
+            border-color: var(--gold-light);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--gold-glow), 0 0 40px rgba(201, 168, 76, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* ===== SVG LINE ICON ===== */
+        .line-icon {
+            width: 1.2em;
+            height: 1.2em;
+            fill: currentColor;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: var(--gold-glow);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(201, 168, 76, 0.5);
+            }
+        }
+
+        @keyframes barFill {
+            from {
+                width: 0;
+                opacity: 0;
+            }
+            to {
+                width: var(--fill-width);
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 0.8s ease-out forwards;
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.8s ease-out forwards;
+        }
+
+        /* ===== SEPARATORS ===== */
+        .separator {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+            margin: 3rem 0;
+        }
+
+        .gold-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+            margin: 2rem 0;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            padding: 2rem 0;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(201, 168, 76, 0.1) 0%, transparent 70%);
+            animation: fadeIn 2s ease-out;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.2s backwards;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 1s ease-out 0.4s backwards;
+        }
+
+        .hero-cta {
+            animation: fadeInUp 1s ease-out 0.6s backwards;
+        }
+
+        /* ===== HOW IT WORKS SECTION ===== */
+        .how-it-works {
+            background-color: #0f0f0f;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .section-title h2 {
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .step-card {
+            padding: 2.5rem;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            background: linear-gradient(135deg, rgba(201, 168, 76, 0.03) 0%, transparent 100%);
+            transition: all 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(201, 168, 76, 0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .step-card:hover {
+            border-color: var(--gold-primary);
+            box-shadow: var(--gold-glow);
+            transform: translateY(-5px);
+        }
+
+        .step-card:hover::before {
+            opacity: 1;
+        }
+
+        .step-card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-number {
+            font-size: 3rem;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .step-card h3 {
+            margin-bottom: 1rem;
+        }
+
+        .step-card p {
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        /* ===== FEATURES SECTION ===== */
+        .features {
+            background-color: #0a0a0a;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-item {
+            padding: 2rem;
+            text-align: center;
+            border-left: 3px solid var(--gold-primary);
+            transition: all 0.6s ease;
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        .feature-item:nth-child(1) { animation-delay: 0.1s; }
+        .feature-item:nth-child(2) { animation-delay: 0.2s; }
+        .feature-item:nth-child(3) { animation-delay: 0.3s; }
+        .feature-item:nth-child(4) { animation-delay: 0.4s; }
+        .feature-item:nth-child(5) { animation-delay: 0.5s; }
+        .feature-item:nth-child(6) { animation-delay: 0.6s; }
+
+        .feature-item:hover {
+            border-left-color: var(--gold-light);
+            background: rgba(201, 168, 76, 0.05);
+            transform: translateX(10px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--gold-light);
+        }
+
+        .feature-item h3 {
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+
+        .feature-item p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* ===== SCORE DEMO SECTION ===== */
+        .score-demo {
+            background-color: #0f0f0f;
+        }
+
+        .demo-container {
+            max-width: 700px;
+            margin: 3rem auto;
+            padding: 3rem;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            background: linear-gradient(135deg, rgba(201, 168, 76, 0.03) 0%, transparent 100%);
+        }
+
+        .score-item {
+            margin-bottom: 2rem;
+        }
+
+        .score-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+
+        .score-bar-container {
+            height: 12px;
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .score-bar {
+            height: 100%;
+            background: var(--gold-gradient);
+            width: 0;
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .score-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .score-value {
+            font-size: 1.1rem;
+            color: var(--gold-light);
+        }
+
+        /* ===== PRICING SECTION ===== */
+        .pricing {
+            background-color: #0a0a0a;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .pricing-card {
+            padding: 2.5rem;
+            border: 2px solid rgba(201, 168, 76, 0.3);
+            background: linear-gradient(135deg, rgba(201, 168, 76, 0.03) 0%, transparent 100%);
+            text-align: center;
+            transition: all 0.6s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        .pricing-card:nth-child(1) { animation-delay: 0.2s; }
+        .pricing-card:nth-child(2) { animation-delay: 0.4s; }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gold-gradient);
+            transform: scaleX(0);
+            transition: transform 0.6s ease;
+            transform-origin: left;
+        }
+
+        .pricing-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--gold-primary);
+            transform: scale(1.05);
+            box-shadow: var(--gold-glow);
+        }
+
+        .pricing-card:hover {
+            border-color: var(--gold-light);
+            box-shadow: var(--gold-glow);
+            transform: translateY(-10px);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-10px);
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--gold-gradient);
+            color: #0a0a0a;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-family: 'EB Garamond', serif;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .plan-period {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .plan-features {
+            text-align: left;
+            margin: 2rem 0;
+            min-height: 150px;
+        }
+
+        .plan-feature {
+            padding: 0.8rem 0;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+            font-size: 0.95rem;
+        }
+
+        .plan-feature:last-child {
+            border-bottom: none;
+        }
+
+        .plan-feature::before {
+            content: '✓ ';
+            color: var(--gold-light);
+            font-weight: 700;
+            margin-right: 0.8rem;
+        }
+
+        .pricing-card .btn {
+            width: 100%;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        /* ===== REVIEWS SECTION ===== */
+        .reviews {
+            background-color: #0f0f0f;
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .review-card {
+            padding: 2.5rem;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            background: linear-gradient(135deg, rgba(201, 168, 76, 0.03) 0%, transparent 100%);
+            transition: all 0.6s ease;
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        .review-card:nth-child(1) { animation-delay: 0.1s; }
+        .review-card:nth-child(2) { animation-delay: 0.2s; }
+        .review-card:nth-child(3) { animation-delay: 0.3s; }
+
+        .review-card:hover {
+            border-color: var(--gold-primary);
+            box-shadow: var(--gold-glow);
+            transform: translateY(-5px);
+        }
+
+        .stars {
+            color: var(--gold-light);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            letter-spacing: 0.2em;
+        }
+
+        .review-text {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .reviewer-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gold-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #0a0a0a;
+            font-size: 1.2rem;
+        }
+
+        .reviewer-name {
+            font-weight: 700;
+        }
+
+        .reviewer-title {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* ===== FINAL CTA SECTION ===== */
+        .final-cta {
+            background: linear-gradient(135deg, rgba(201, 168, 76, 0.1) 0%, rgba(201, 168, 76, 0.05) 100%);
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid rgba(201, 168, 76, 0.3);
+            border-bottom: 1px solid rgba(201, 168, 76, 0.3);
+        }
+
+        .final-cta h2 {
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .final-cta p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .final-cta .btn {
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
+            font-size: 1.1rem;
+            padding: 1.2rem 3rem;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background-color: #0a0a0a;
+            border-top: 1px solid rgba(201, 168, 76, 0.3);
+            padding: 3rem 0;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        footer p {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        footer a {
+            color: var(--gold-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: var(--text-light);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            section {
+                padding: 3rem 0;
+            }
+
+            .hero {
+                min-height: auto;
+                padding: 3rem 0;
+            }
+
+            .hero::before {
+                width: 400px;
+                height: 400px;
+                top: -30%;
+                right: -30%;
+            }
+
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .pricing-card:hover,
+            .pricing-card.featured:hover {
+                transform: translateY(-10px);
+            }
+
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .demo-container {
+                padding: 1.5rem;
+            }
+
+            .final-cta {
+                min-height: auto;
+                padding: 2rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            section {
+                padding: 2rem 0;
+            }
+
+            .step-card,
+            .feature-item,
+            .review-card {
+                padding: 1.5rem;
+            }
+
+            .plan-features {
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="gold-text">SwingLens AI</h1>
+                <p class="hero-subtitle">あなたのゴルフスイングを、AI が丸ごと分析</p>
+                <p class="hero-description">LINE にスイング動画を送るだけで、プロの技術を持つ AI コーチが 7 段階で詳細に分析。今すぐ無料体験して、スコアアップへの道を切り開きましょう。</p>
+                <div class="hero-cta">
+                    <button class="btn btn-primary" onclick="scrollToSection('pricing')">
+                        <svg class="line-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.365 9.863c.204-2.965-2.346-5.722-5.401-5.722-1.58 0-3.022.721-3.964 1.865-.942-1.144-2.384-1.865-3.964-1.865-3.055 0-5.605 2.757-5.401 5.722-.56 4.283 3.59 7.749 9.365 12.111 5.775-4.362 9.925-7.828 9.365-12.111z"/>
+                        </svg>
+                        無料で試す
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEPARATOR -->
+    <div class="separator"></div>
+
+    <!-- HOW IT WORKS SECTION -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-title">
+                <h2>3 ステップで開始</h2>
+                <p class="section-subtitle">シンプルな 3 ステップであなたのスイングを分析</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-card-content">
+                        <div class="step-number">1</div>
+                        <h3>LINE 友達追加</h3>
+                        <p>SwingLens AI の LINE 公式アカウントを友達に追加します。セットアップはわずか 10 秒。</p>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-card-content">
+                        <div class="step-number">2</div>
+                        <h3>動画を送信</h3>
+                        <p>スイング動画を LINE チャットで送るだけ。正面からの撮影で自動的に認識されます。</p>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-card-content">
+                        <div class="step-number">3</div>
+                        <h3>分析を受け取る</h3>
+                        <p>数秒で詳細なスイング分析と改善提案がすぐに戻ってきます。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GOLD LINE SEPARATOR -->
+    <div class="gold-line"></div>
+
+    <!-- FEATURES SECTION -->
+    <section class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>SwingLens AI の特徴</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <h3>7 段階スコアリング</h3>
+                    <p>アドレス、テイクバック、トップ、トランジション、インパクト、フォロースルー、フィニッシュを 100 点満点で評価</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🎯</div>
+                    <h3>TOP 3 改善ポイント</h3>
+                    <p>優先順位付きの改善提案で、何からやるべきかが一目瞭然</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⭐</div>
+                    <h3>プロとの比較</h3>
+                    <p>PGA ツアープロのスイングとリアルタイム比較で、正確な改善ポイントを発見</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📈</div>
+                    <h3>進捗トラッキング</h3>
+                    <p>過去のスイングと比較して、着実な成長を可視化。モチベーション維持に最適</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <h3>数秒で分析完了</h3>
+                    <p>最先端の AI 技術により、動画送信から数秒で詳細分析を提供</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📱</div>
+                    <h3>LINE で完結</h3>
+                    <p>アプリ不要。いつも使っている LINE で全て完結。手軽に続けられます</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCORE DEMO SECTION -->
+    <section class="score-demo">
+        <div class="container">
+            <div class="section-title">
+                <h2>スイング分析の例</h2>
+                <p class="section-subtitle">実際の分析結果をシミュレーション表示</p>
+            </div>
+            <div class="demo-container">
+                <div class="score-item">
+                    <div class="score-label">
+                        <span>アドレス</span>
+                        <span class="score-value">82</span>
+                    </div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" style="--fill-width: 82%"></div>
+                    </div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">
+                        <span>テイクバック</span>
+                        <span class="score-value">76</span>
+                    </div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" style="--fill-width: 76%"></div>
+                    </div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">
+                        <span>トップ</span>
+                        <span class="score-value">88</span>
+                    </div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" style="--fill-width: 88%"></div>
+                    </div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">
+                        <span>トランジション</span>
+                        <span class="score-value">72</span>
+                    </div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" style="--fill-width: 72%"></div>
+                    </div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">
+                        <span>インパクト</span>
+                        <span class="score-value">85</span>
+                    </div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" style="--fill-width: 85%"></div>
+                    </div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">
+                        <span>フォロースルー</span>
+                        <span class="score-value">79</span>
+                    </div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" style="--fill-width: 79%"></div>
+                    </div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">
+                        <span>フィニッシュ</span>
+                        <span class="score-value">84</span>
+                    </div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" style="--fill-width: 84%"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 2rem; color: var(--text-muted); font-size: 0.95rem;">
+                <p>改善優先度 Top 3：<span class="gold-accent">① トランジション改善 → ② テイクバック修正 → ③ フォロースルー調整</span></p>
+                <p style="margin-top: 1rem;">#1 優先改善：「トランジション段階での一瞬のタイミング遅延を 0.2 秒早める」</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING SECTION -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-title">
+                <h2>シンプルな料金プラン</h2>
+                <p class="section-subtitle">あなたのゴルフレベルに合わせて選択</p>
+            </div>
+            <div class="pricing-grid" style="justify-content: center;">
+                <div class="pricing-card featured">
+                    <div class="badge" style="background: #c9a84c; color: #0a0a0a;">初回1回無料</div>
+                    <h3 class="plan-name">プロプラン</h3>
+                    <div class="plan-price">¥1,000</div>
+                    <p class="plan-period">/月</p>
+                    <p class="plan-description">初回1回無料（LINE ID当たり1回）。2回目以降は月¥1,000で10回解析</p>
+                    <div class="plan-features">
+                        <div class="plan-feature">月 10 回の分析</div>
+                        <div class="plan-feature">7 段階スコアリング</div>
+                        <div class="plan-feature">TOP 3 改善提案</div>
+                        <div class="plan-feature">プロとの比較機能</div>
+                        <div class="plan-feature">過去スイング比較</div>
+                        <div class="plan-feature">優先サポート</div>
+                        <div class="plan-feature">LINE完結</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="addLineBot()">
+                        <svg class="line-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.365 9.863c.204-2.965-2.346-5.722-5.401-5.722-1.58 0-3.022.721-3.964 1.865-.942-1.144-2.384-1.865-3.964-1.865-3.055 0-5.605 2.757-5.401 5.722-.56 4.283 3.59 7.749 9.365 12.111 5.775-4.362 9.925-7.828 9.365-12.111z"/>
+                        </svg>
+                        初回無料で試してみる
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REVIEWS SECTION -->
+    <section class="reviews">
+        <div class="container">
+            <div class="section-title">
+                <h2>ユーザーの声</h2>
+                <p class="section-subtitle">実際にご利用いただいているゴルファーの評価</p>
+            </div>
+            <div class="reviews-grid">
+                <div class="review-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="review-text">「何年も直らなかったテイクバックのクセが一目瞭然。AI の指摘は本当に的確で、3 ヶ月で 5 打縮まりました。」</p>
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">田</div>
+                        <div>
+                            <div class="reviewer-name">田中太郎</div>
+                            <div class="reviewer-title">ゴルフ歴 8 年、ハンディ 5</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="review-text">「初心者ですが、プロのスイングとの比較で自分の課題がすぐわかります。LINE だけで完結するのも使いやすい。」</p>
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">山</div>
+                        <div>
+                            <div class="reviewer-name">山田花子</div>
+                            <div class="reviewer-title">ゴルフ歴 1 年、ハンディ 20</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="review-text">「トーナメント前の調整に最適。数秒で分析が戻ってくるので、ラウンド中の調整にも活用しています。」</p>
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">佐</div>
+                        <div>
+                            <div class="reviewer-name">佐藤次郎</div>
+                            <div class="reviewer-title">ゴルフ歴 15 年、ハンディ -1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GOLD LINE SEPARATOR -->
+    <div class="gold-line"></div>
+
+    <!-- FINAL CTA SECTION -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>今すぐスイングを分析しましょう</h2>
+            <p>初回1回無料でお試しいただけます。<br>2回目以降は月¥1,000で10回の解析をご利用いただけます。</p>
+            <button class="btn btn-primary" onclick="addLineBot()">
+                <svg class="line-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19.365 9.863c.204-2.965-2.346-5.722-5.401-5.722-1.58 0-3.022.721-3.964 1.865-.942-1.144-2.384-1.865-3.964-1.865-3.055 0-5.605 2.757-5.401 5.722-.56 4.283 3.59 7.749 9.365 12.111 5.775-4.362 9.925-7.828 9.365-12.111z"/>
+                </svg>
+                初回無料で試してみる
+            </button>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SwingLens AI. All rights reserved.</p>
+            <p>
+                <a href="#terms">利用規約</a> |
+                <a href="#privacy">プライバシーポリシー</a> |
+                <a href="#contact">お問い合わせ</a>
+            </p>
+            <p style="margin-top: 1rem; font-size: 0.85rem;">
+                LINE is a trademark of Line Corporation.<br>
+                SwingLens AI は LINE 公式アカウントを通じたサービスです。
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+
+                    // Trigger score bar animations
+                    const scoreBars = entry.target.querySelectorAll('.score-bar');
+                    scoreBars.forEach(bar => {
+                        bar.style.animation = 'barFill 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+                    });
+
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements with animation classes
+        document.querySelectorAll('.feature-item, .review-card, .pricing-card, .step-card').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll helper
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // LINE bot CTA handler
+        function addLineBot() {
+            // Replace with actual LINE bot URL
+            const lineUrl = 'https://line.me/R/ti/p/%40swinglensai';
+            window.open(lineUrl, '_blank');
+        }
+
+        // Add scroll animations on page load
+        window.addEventListener('load', function() {
+            // Stagger animations for feature items
+            document.querySelectorAll('.feature-item').forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.animationDelay = `${0.1 * index}s`;
+            });
+
+            // Similar for other cards
+            document.querySelectorAll('.review-card, .pricing-card').forEach((card, index) => {
+                card.style.opacity = '0';
+            });
+        });
+
+        // Parallax effect on hero section
+        window.addEventListener('scroll', function() {
+            const hero = document.querySelector('.hero');
+            if (window.scrollY < window.innerHeight) {
+                hero.style.backgroundPositionY = (window.scrollY * 0.5) + 'px';
+            }
+        });
+
+        // Preload animations by observing intersection
+        const lazyElements = document.querySelectorAll('.step-card');
+        lazyElements.forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

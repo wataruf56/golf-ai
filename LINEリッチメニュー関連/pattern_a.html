@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 2500px; height: 843px; overflow: hidden; }
+.container {
+  width: 2500px;
+  height: 843px;
+  display: flex;
+  background: linear-gradient(135deg, #1a472a 0%, #2d6a4f 50%, #40916c 100%);
+  font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+}
+.cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 2px solid rgba(255,255,255,0.15);
+}
+.cell:last-child { border-right: none; }
+.cell.main {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+.icon {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  font-size: 70px;
+}
+.cell.main .icon {
+  background: rgba(255,255,255,0.25);
+}
+.cell:not(.main) .icon {
+  background: rgba(255,255,255,0.15);
+}
+.title {
+  color: #fff;
+  font-size: 58px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.subtitle {
+  color: rgba(255,255,255,0.85);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+.badge {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 20px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="cell main">
+    <div class="badge">タップで開始!</div>
+    <div class="icon">🏌️</div>
+    <div class="title">スイング解析</div>
+    <div class="subtitle">動画を送ってAI解析</div>
+  </div>
+  <div class="cell">
+    <div class="icon">📖</div>
+    <div class="title">使い方</div>
+    <div class="subtitle">操作ガイドを見る</div>
+  </div>
+  <div class="cell">
+    <div class="icon">💬</div>
+    <div class="title">問い合わせ</div>
+    <div class="subtitle">お気軽にどうぞ</div>
+  </div>
+</div>
+</body>
+</html>

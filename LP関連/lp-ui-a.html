@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwingLens AI — あなた専属のAIゴルフコーチ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #0a0f0d;
+  --bg-card: #111916;
+  --bg-card-hover: #162019;
+  --accent: #4ae68a;
+  --accent-dim: #2a8a52;
+  --accent-glow: rgba(74, 230, 138, 0.15);
+  --gold: #d4a843;
+  --gold-dim: rgba(212, 168, 67, 0.2);
+  --text-primary: #e8ede9;
+  --text-secondary: #8a9b8f;
+  --text-muted: #566b5c;
+  --border: rgba(74, 230, 138, 0.08);
+  --border-strong: rgba(74, 230, 138, 0.2);
+  --serif: 'Cormorant Garamond', 'Georgia', serif;
+  --sans: 'Noto Sans JP', -apple-system, sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grain Overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+/* Navigation */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 20px 0;
+  background: rgba(10, 15, 13, 0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: padding 0.3s;
+}
+
+nav.scrolled { padding: 12px 0; }
+
+nav .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+}
+
+.logo span { color: var(--accent); }
+
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 100px;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: all 0.3s;
+}
+
+.nav-cta:hover {
+  background: #5ef09a;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px var(--accent-glow);
+}
+
+/* Editorial Hero */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-top: 100px;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -15%;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 120px;
+  align-items: center;
+}
+
+.hero-text {
+  padding-right: 60px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 100px;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  margin-bottom: 40px;
+  background: rgba(74, 230, 138, 0.05);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(3.2rem, 6vw, 5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 32px;
+  word-spacing: 9999px;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.hero-sub {
+  font-size: 1.1rem;
+  line-height: 2;
+  color: var(--text-secondary);
+  margin-bottom: 48px;
+  font-weight: 300;
+  max-width: 500px;
+}
+
+.hero-cta-group {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 36px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 100px;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: all 0.3s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #5ef09a;
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px var(--accent-glow);
+}
+
+.btn-primary svg { width: 18px; height: 18px; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  border: 2px solid var(--border-strong);
+  border-radius: 100px;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Floating Phone Mockup */
+.phone-container {
+  position: relative;
+  perspective: 1200px;
+}
+
+.phone-frame {
+  width: 320px;
+  background: #1a221e;
+  border-radius: 40px;
+  padding: 14px;
+  border: 1px solid var(--border-strong);
+  box-shadow:
+    0 50px 100px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(74, 230, 138, 0.05),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+  position: relative;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotateZ(0deg); }
+  50% { transform: translateY(-30px) rotateZ(1deg); }
+}
+
+.phone-screen {
+  background: #0d1411;
+  border-radius: 28px;
+  overflow: hidden;
+  aspect-ratio: 9/19;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-header {
+  padding: 16px 16px 12px;
+  background: linear-gradient(180deg, #162019 0%, #0d1411 100%);
+  text-align: center;
+}
+
+.phone-header-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  border-radius: 14px;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.phone-header-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.phone-header-sub {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.phone-chat {
+  flex: 1;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.chat-bubble {
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 0.65rem;
+  line-height: 1.7;
+  max-width: 85%;
+  animation: fadeUp 0.6s ease both;
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border-bottom-right-radius: 4px;
+  font-weight: 500;
+}
+
+.chat-bubble.ai {
+  align-self: flex-start;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.chat-bubble:nth-child(1) { animation-delay: 0.3s; }
+.chat-bubble:nth-child(2) { animation-delay: 1s; }
+.chat-bubble:nth-child(3) { animation-delay: 1.6s; }
+.chat-bubble:nth-child(4) { animation-delay: 2.2s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.phone-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Section Common */
+section {
+  padding: 140px 0;
+  position: relative;
+}
+
+section:nth-child(even) {
+  background: linear-gradient(180deg, transparent 0%, rgba(74, 230, 138, 0.03) 50%, transparent 100%);
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 64px;
+  font-family: var(--mono);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section-number {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0.5;
+}
+
+.editorial-headline {
+  font-family: var(--serif);
+  font-size: clamp(2.4rem, 4vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+
+/* Features - Editorial Two Column */
+.features-editorial {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 80px;
+  align-items: start;
+  margin-top: 80px;
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.feature-editorial {
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.feature-editorial:last-child {
+  border-bottom: none;
+}
+
+.feature-editorial h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feature-editorial-emoji {
+  font-size: 1.4rem;
+}
+
+.feature-editorial p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+.feature-visual {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 48px 40px;
+  text-align: center;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 140px;
+}
+
+.feature-visual-content {
+  font-size: 4rem;
+  opacity: 0.8;
+}
+
+/* Testimonials - Pull Quote Style */
+.testimonials-section {
+  margin-top: 100px;
+}
+
+.testimonials-editorial {
+  display: grid;
+  gap: 60px;
+  margin-top: 80px;
+}
+
+.testimonial-pullquote {
+  background: var(--bg-card);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 48px 40px;
+  position: relative;
+}
+
+.testimonial-pullquote::before {
+  content: '"';
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  font-family: var(--serif);
+  font-size: 5rem;
+  color: var(--accent);
+  opacity: 0.15;
+  line-height: 1;
+}
+
+.testimonial-quote {
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--text-primary);
+  line-height: 1.9;
+  margin-bottom: 28px;
+  font-family: var(--serif);
+  position: relative;
+  z-index: 1;
+}
+
+.testimonial-credit {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.testimonial-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--bg-primary);
+}
+
+.testimonial-author-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.testimonial-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.testimonial-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* How it Works - Staggered Grid */
+.steps-editorial {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 80px;
+}
+
+.step-editorial {
+  position: relative;
+}
+
+.step-editorial:nth-child(1) {
+  transform: translateY(0px);
+}
+
+.step-editorial:nth-child(2) {
+  transform: translateY(60px);
+}
+
+.step-editorial:nth-child(3) {
+  transform: translateY(0px);
+}
+
+.step-card-editorial {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px 32px;
+  height: 100%;
+  transition: all 0.4s;
+}
+
+.step-card-editorial:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-hover);
+}
+
+.step-num {
+  font-family: var(--serif);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0.2;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.step-icon {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.step-card-editorial h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.step-card-editorial p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+/* Score Sidebar Data Card */
+.score-editorial-section {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr;
+  gap: 60px;
+  align-items: start;
+  margin-top: 80px;
+}
+
+.score-editorial-text {
+  padding-right: 40px;
+}
+
+.score-editorial-text h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.score-editorial-text p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  margin-bottom: 16px;
+  font-weight: 300;
+}
+
+.score-card-data {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  position: sticky;
+  top: 140px;
+}
+
+.score-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.score-total {
+  font-family: var(--serif);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.score-total small {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.score-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--mono);
+}
+
+.score-rating {
+  text-align: right;
+}
+
+.score-rating-emoji {
+  font-size: 2.2rem;
+  margin: 4px 0;
+}
+
+.score-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.score-bar-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 45px;
+  align-items: center;
+  gap: 10px;
+}
+
+.score-bar-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.score-bar-track {
+  height: 7px;
+  background: rgba(74, 230, 138, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  border-radius: 4px;
+  transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.score-bar-value {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-align: right;
+  font-weight: 700;
+}
+
+/* Pricing - Centered Subscription Card */
+.pricing-editorial {
+  text-align: center;
+  margin-top: 100px;
+}
+
+.pricing-card-editorial {
+  max-width: 520px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(74, 230, 138, 0.04) 100%);
+  border: 2px solid var(--accent);
+  border-radius: 24px;
+  padding: 60px 48px;
+  position: relative;
+}
+
+.price-badge-editorial {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: var(--bg-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 6px 18px;
+  border-radius: 100px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.price-plan-label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.price-display {
+  font-family: var(--serif);
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.price-display small {
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.price-description {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+.price-features-editorial {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.price-features-editorial li {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding-left: 32px;
+  position: relative;
+  font-weight: 300;
+}
+
+.price-features-editorial li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.btn-price-editorial {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 40px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 100px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-price-editorial:hover {
+  background: #5ef09a;
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px var(--accent-glow);
+}
+
+.btn-price-editorial svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Final CTA */
+.final-cta-editorial {
+  text-align: center;
+  padding: 140px 0 160px;
+  position: relative;
+}
+
+.final-cta-editorial::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 500px;
+  background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.final-cta-content {
+  position: relative;
+  z-index: 1;
+}
+
+.final-cta-content .editorial-headline {
+  margin-bottom: 24px;
+}
+
+.final-cta-description {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  margin-bottom: 48px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  font-weight: 300;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 48px 0;
+  text-align: center;
+}
+
+footer .logo {
+  margin-bottom: 16px;
+  font-size: 1.3rem;
+}
+
+footer p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
+
+  .hero-text {
+    padding-right: 0;
+    order: 2;
+  }
+
+  .phone-container {
+    order: 1;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .features-editorial {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .feature-visual {
+    position: static;
+  }
+
+  .score-editorial-section {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .score-card-data {
+    position: static;
+  }
+
+  .score-editorial-text {
+    padding-right: 0;
+  }
+
+  .steps-editorial {
+    grid-template-columns: 1fr;
+  }
+
+  .step-editorial:nth-child(2) {
+    transform: translateY(0px);
+  }
+
+  .pricing-card-editorial {
+    padding: 48px 32px;
+  }
+
+  .phone-frame {
+    width: 280px;
+  }
+
+  section {
+    padding: 80px 0;
+  }
+
+  nav.scrolled .nav-cta {
+    display: none;
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-primary,
+  .btn-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .section-divider {
+    margin-bottom: 48px;
+  }
+
+  .editorial-headline {
+    font-size: 2rem;
+  }
+
+  .testimonial-quote {
+    font-size: 1rem;
+  }
+
+  .final-cta-editorial::before {
+    width: 100%;
+    height: 300px;
+  }
+}
+
+/* Animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav id="nav">
+  <div class="container">
+    <div class="logo">Swing<span>Lens</span></div>
+    <a href="#cta" class="nav-cta">無料で始める →</a>
+  </div>
+</nav>
+
+<!-- Editorial Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-badge">LINE × AI ゴルフコーチ</div>
+        <h1>動画を送るだけで、<em>プロ級の解析</em>があなたの手に。</h1>
+        <p class="hero-sub">
+          LINEでスイング動画を送るだけ。PGAレベルのAIコーチが7フェーズを100点満点で採点し、最優先で直すべき1つのポイントを明確にお伝えします。
+        </p>
+        <div class="hero-cta-group">
+          <a href="#cta" class="btn-primary">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+            初回無料で試してみる
+          </a>
+          <a href="#how" class="btn-ghost">使い方を見る ↓</a>
+        </div>
+      </div>
+      <div class="phone-container">
+        <div class="phone-glow"></div>
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <div class="phone-header">
+              <div class="phone-header-icon">🏌️</div>
+              <div class="phone-header-title">SwingLens AI</div>
+              <div class="phone-header-sub">あなた専属のAIコーチ</div>
+            </div>
+            <div class="phone-chat">
+              <div class="chat-bubble user">🎥 スイング動画を送信</div>
+              <div class="chat-bubble ai">解析を開始します！<br>少々お待ちください⏳</div>
+              <div class="chat-bubble ai">
+                <strong>総合：72/100</strong> 🎯<br><br>
+                アドレスの前傾角度が<br>素晴らしい！切り返しのタイミングを<br>少し改善するだけで<br>飛距離UPが期待できます🚀
+              </div>
+              <div class="chat-bubble user">もっと詳しく！</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it Works - Staggered -->
+<section id="how">
+  <div class="container">
+    <div class="section-divider">
+      <span class="section-number">01</span>
+      <span>使い方</span>
+    </div>
+    <h2 class="editorial-headline reveal">3ステップで、プロの目を手に入れる。</h2>
+    <p class="reveal" style="font-size: 1rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 20px; font-weight: 300;">難しい設定は一切不要。LINEを開いて、撮って、送る。それだけです。</p>
+    <div class="steps-editorial">
+      <div class="step-editorial reveal">
+        <div class="step-card-editorial">
+          <div class="step-num">01</div>
+          <div class="step-icon">📱</div>
+          <h3>LINE で友だち追加</h3>
+          <p>QRコードを読み取るだけ。アプリのダウンロードは不要です。いつものLINEがコーチに変わります。</p>
+        </div>
+      </div>
+      <div class="step-editorial reveal">
+        <div class="step-card-editorial">
+          <div class="step-num">02</div>
+          <div class="step-icon">🎥</div>
+          <h3>スイング動画を送信</h3>
+          <p>練習場やコースで撮った動画をそのまま送信。正面・後方、どのアングルでもOK。</p>
+        </div>
+      </div>
+      <div class="step-editorial reveal">
+        <div class="step-card-editorial">
+          <div class="step-num">03</div>
+          <div class="step-icon">🎯</div>
+          <h3>AI が即座に解析</h3>
+          <p>7フェーズの採点、改善点TOP3、最優先で直すべきポイント、おすすめ練習法まで。プロ基準のフィードバックが届きます。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features - Editorial Layout -->
+<section>
+  <div class="container">
+    <div class="section-divider">
+      <span class="section-number">02</span>
+      <span>特徴</span>
+    </div>
+    <h2 class="editorial-headline reveal">本気で上達したいゴルファーへ。</h2>
+    <p class="reveal" style="font-size: 1rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 20px; font-weight: 300;">練習場で漠然と打つ時代は終わりです。毎回の練習に、明確な「次の一手」を。</p>
+    <div class="features-editorial">
+      <div class="features-list">
+        <div class="feature-editorial reveal">
+          <h3><span class="feature-editorial-emoji">🧠</span>PGAプロ基準の7フェーズ採点</h3>
+          <p>アドレス、テイクバック、トップ、切り返し、インパクト、フォロー、フィニッシュ。各10点満点で、根拠付きの厳密な採点を行います。甘い評価はしません。本当の実力が見える採点です。</p>
+        </div>
+        <div class="feature-editorial reveal">
+          <h3><span class="feature-editorial-emoji">📊</span>プロとの比較解析</h3>
+          <p>プロの動画とあなたの動画を比較。具体的にどこが違うのか、改善ポイントを明確にします。</p>
+        </div>
+        <div class="feature-editorial reveal">
+          <h3><span class="feature-editorial-emoji">📈</span>過去の自分との比較</h3>
+          <p>以前のスイングと今を比較して成長を可視化。モチベーション維持に効果的です。</p>
+        </div>
+        <div class="feature-editorial reveal">
+          <h3><span class="feature-editorial-emoji">💬</span>自由質問で深掘り</h3>
+          <p>「スライスが直らない」「飛距離を伸ばしたい」など、気になるポイントを補足すると解析精度がさらにUP。</p>
+        </div>
+        <div class="feature-editorial reveal">
+          <h3><span class="feature-editorial-emoji">⚡</span>10秒で解析開始</h3>
+          <p>動画を送ったら数十秒で結果が届く。練習中にすぐ確認して、次の1球に活かせます。</p>
+        </div>
+      </div>
+      <div class="feature-visual reveal">
+        <div class="feature-visual-content">💡</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Score Demo - Editorial Data Card -->
+<section>
+  <div class="container">
+    <div class="section-divider">
+      <span class="section-number">03</span>
+      <span>解析レポート</span>
+    </div>
+    <div class="score-editorial-section">
+      <div class="score-editorial-text reveal">
+        <h3>こんなレポートが毎回届きます。</h3>
+        <p>甘くないプロ基準の採点と、根拠付きの改善アドバイス。あなたのスイングの課題が一目で分かり、次に何をすべきかが明確になります。</p>
+        <p>各フェーズを10点満点で採点し、強みと弱みを客観的に把握。改善の優先順位が立てやすくなるため、練習の効率が格段にアップします。</p>
+      </div>
+      <div class="score-card-data reveal">
+        <div class="score-header">
+          <div>
+            <div class="score-label">総合スコア</div>
+            <div class="score-total">72<small>/100</small></div>
+          </div>
+          <div class="score-rating">
+            <div class="score-label">判定</div>
+            <div class="score-rating-emoji">🌟</div>
+            <div style="font-size: 0.75rem; color: var(--accent);">良い</div>
+          </div>
+        </div>
+        <div class="score-bars">
+          <div class="score-bar-row">
+            <span class="score-bar-label">アドレス</span>
+            <div class="score-bar-track"><div class="score-bar-fill" data-width="80" style="width: 0%;"></div></div>
+            <span class="score-bar-value">8/10</span>
+          </div>
+          <div class="score-bar-row">
+            <span class="score-bar-label">テイクバック</span>
+            <div class="score-bar-track"><div class="score-bar-fill" data-width="70" style="width: 0%;"></div></div>
+            <span class="score-bar-value">7/10</span>
+          </div>
+          <div class="score-bar-row">
+            <span class="score-bar-label">トップ</span>
+            <div class="score-bar-track"><div class="score-bar-fill" data-width="70" style="width: 0%;"></div></div>
+            <span class="score-bar-value">7/10</span>
+          </div>
+          <div class="score-bar-row">
+            <span class="score-bar-label">切り返し</span>
+            <div class="score-bar-track"><div class="score-bar-fill" data-width="60" style="width: 0%;"></div></div>
+            <span class="score-bar-value">6/10</span>
+          </div>
+          <div class="score-bar-row">
+            <span class="score-bar-label">インパクト</span>
+            <div class="score-bar-track"><div class="score-bar-fill" data-width="70" style="width: 0%;"></div></div>
+            <span class="score-bar-value">7/10</span>
+          </div>
+          <div class="score-bar-row">
+            <span class="score-bar-label">フォロー</span>
+            <div class="score-bar-track"><div class="score-bar-fill" data-width="80" style="width: 0%;"></div></div>
+            <span class="score-bar-value">8/10</span>
+          </div>
+          <div class="score-bar-row">
+            <span class="score-bar-label">フィニッシュ</span>
+            <div class="score-bar-track"><div class="score-bar-fill" data-width="70" style="width: 0%;"></div></div>
+            <span class="score-bar-value">7/10</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing">
+  <div class="container">
+    <div style="text-align: center;">
+      <div class="section-divider" style="justify-content: center; margin-bottom: 64px;">
+        <span class="section-number">04</span>
+        <span>プラン</span>
+      </div>
+      <h2 class="editorial-headline reveal">レッスンプロの1/50の価格で、<br>24時間いつでも解析。</h2>
+      <p class="reveal" style="font-size: 1rem; color: var(--text-secondary); line-height: 1.8; margin: 0 auto 60px; font-weight: 300; max-width: 700px;">初回1回無料。その後は月1,000円で10回の解析が可能。本気で上達を目指すゴルファーに選ばれています。</p>
+    </div>
+    <div class="pricing-editorial">
+      <div class="pricing-card-editorial reveal">
+        <div class="price-badge-editorial">初回1回無料</div>
+        <div class="price-plan-label">PRO</div>
+        <div class="price-display">¥1,000<small>/月</small></div>
+        <p class="price-description">月10回のAI解析が可能。本気で上達を目指すゴルファーに。</p>
+        <ul class="price-features-editorial">
+          <li>月10回のAI解析</li>
+          <li>7フェーズの採点レポート</li>
+          <li>プロとの比較解析</li>
+          <li>過去の自分との比較</li>
+          <li>自由質問で深掘りアドバイス</li>
+          <li>優先解析（待ち時間短縮）</li>
+          <li>LINE完結（アプリ不要）</li>
+        </ul>
+        <a href="#cta" class="btn-price-editorial">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+          初回無料で試してみる
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials-section">
+  <div class="container">
+    <div class="section-divider">
+      <span class="section-number">05</span>
+      <span>利用者の声</span>
+    </div>
+    <h2 class="editorial-headline reveal">ゴルファーたちが実感した変化。</h2>
+    <div class="testimonials-editorial">
+      <div class="testimonial-pullquote reveal">
+        <div class="testimonial-quote">「練習場で毎回撮って送ってます。切り返しのタイミングを指摘されてから意識したら、1ヶ月でスライスがかなり改善しました。」</div>
+        <div class="testimonial-credit">
+          <div class="testimonial-avatar">T.S</div>
+          <div class="testimonial-author-info">
+            <div class="testimonial-name">T.S さん</div>
+            <div class="testimonial-meta">ゴルフ歴3年 · スコア105→95</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-pullquote reveal">
+        <div class="testimonial-quote">「レッスンプロに通う時間がなかったので助かります。AIの指摘が的確で、しかも褒めてくれるのでモチベが上がる（笑）」</div>
+        <div class="testimonial-credit">
+          <div class="testimonial-avatar">M.K</div>
+          <div class="testimonial-author-info">
+            <div class="testimonial-name">M.K さん</div>
+            <div class="testimonial-meta">ゴルフ歴5年 · スコア98→88</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-pullquote reveal">
+        <div class="testimonial-quote">「過去の自分との比較が良い。3ヶ月前と今のフォームを比べると確実に良くなっていて、数値で見えるのが嬉しい。」</div>
+        <div class="testimonial-credit">
+          <div class="testimonial-avatar">A.Y</div>
+          <div class="testimonial-author-info">
+            <div class="testimonial-name">A.Y さん</div>
+            <div class="testimonial-meta">ゴルフ歴1年 · スコア115→102</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta-editorial" id="cta">
+  <div class="container">
+    <div class="final-cta-content">
+      <h2 class="editorial-headline reveal">次の練習から、変わる。</h2>
+      <p class="final-cta-description reveal">友だち追加するだけで、AI解析を1回無料でお試しいただけます。<br>アプリのダウンロードは不要。いつものLINEですぐに始められます。</p>
+      <a href="#" class="btn-primary reveal">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+        LINE友だち追加で初回無料体験
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="logo">Swing<span>Lens</span></div>
+    <p>© 2026 SwingLens AI. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+// Nav scroll effect
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+reveals.forEach(el => observer.observe(el));
+
+// Score bar animation
+const scoreObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.score-bar-fill').forEach(bar => {
+        bar.style.width = bar.dataset.width + '%';
+      });
+      scoreObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+const scoreCard = document.querySelector('.score-card-data');
+if (scoreCard) scoreObserver.observe(scoreCard);
+</script>
+</body>
+</html>

@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwingLens AI — AIがあなたのスイングを変える</title>
+<meta name="description" content="LINEでゴルフ動画を送るだけ。AIがスイングを7フェーズで徹底解析。月額1,000円のマイクロコーチ。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0a0f0d;
+  --bg-light: #111916;
+  --green: #4ae68a;
+  --green-dim: rgba(74, 230, 138, 0.15);
+  --gold: #d4a843;
+  --gold-dim: rgba(212, 168, 67, 0.12);
+  --white: #f0f0f0;
+  --gray: #8a9a90;
+  --dark-gray: #2a3530;
+}
+
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+section {
+  scroll-snap-align: start;
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+h1, h2, h3 {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.mono {
+  font-family: 'DM Mono', monospace;
+}
+
+/* ===== REVEAL ANIMATIONS ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.15s; }
+.reveal-delay-2 { transition-delay: 0.3s; }
+.reveal-delay-3 { transition-delay: 0.45s; }
+.reveal-delay-4 { transition-delay: 0.6s; }
+
+/* ===== SECTION 1: HERO ===== */
+.hero {
+  background: var(--bg);
+  padding: 0 6vw;
+}
+
+.hero-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  gap: 4vw;
+}
+
+.hero-text {
+  flex: 1;
+  max-width: 520px;
+}
+
+.hero-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+
+.hero-title {
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 1.5rem;
+  color: var(--white);
+}
+
+.hero-title em {
+  font-style: normal;
+  color: var(--green);
+}
+
+.hero-sub {
+  font-size: 1rem;
+  color: var(--gray);
+  line-height: 1.8;
+  font-weight: 300;
+  margin-bottom: 2rem;
+}
+
+.hero-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  background: var(--green-dim);
+  border: 1px solid rgba(74, 230, 138, 0.25);
+  padding: 0.6rem 1.4rem;
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--green);
+}
+
+.hero-price strong {
+  font-size: 1.1rem;
+}
+
+/* ===== PHONE MOCKUP ===== */
+.phone-wrap {
+  flex-shrink: 0;
+}
+
+.phone {
+  width: 280px;
+  height: 580px;
+  background: #1a1a1a;
+  border-radius: 40px;
+  border: 3px solid #333;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.05),
+    0 25px 70px rgba(0,0,0,0.6),
+    0 0 120px rgba(74, 230, 138, 0.06);
+}
+
+.phone-notch {
+  width: 120px;
+  height: 28px;
+  background: #1a1a1a;
+  border-radius: 0 0 18px 18px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.phone-screen {
+  position: absolute;
+  inset: 12px;
+  background: var(--bg);
+  border-radius: 30px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-header {
+  background: var(--bg-light);
+  padding: 36px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--dark-gray);
+}
+
+.phone-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--bg);
+}
+
+.phone-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.phone-chat {
+  flex: 1;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.chat-bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 0.7rem;
+  line-height: 1.6;
+  opacity: 0;
+  transform: translateY(16px) scale(0.95);
+  animation: bubbleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  white-space: pre-line;
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  background: #06c755;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-bubble.ai {
+  align-self: flex-start;
+  background: var(--bg-light);
+  color: var(--white);
+  border: 1px solid var(--dark-gray);
+  border-bottom-left-radius: 4px;
+}
+
+.chat-bubble.ai strong {
+  color: var(--green);
+}
+
+.chat-bubble:nth-child(1) { animation-delay: 0.6s; }
+.chat-bubble:nth-child(2) { animation-delay: 1.6s; }
+.chat-bubble:nth-child(3) { animation-delay: 2.8s; }
+.chat-bubble:nth-child(4) { animation-delay: 4.6s; }
+
+@keyframes bubbleIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===== SECTION 2: PROBLEM ===== */
+.problem {
+  background: var(--bg);
+  text-align: center;
+  padding: 0 6vw;
+}
+
+.problem-inner {
+  max-width: 800px;
+}
+
+.problem-title {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: clamp(1.6rem, 4.5vw, 3rem);
+  font-weight: 900;
+  line-height: 1.5;
+  margin-bottom: 2.5rem;
+}
+
+.problem-title em {
+  font-style: normal;
+  color: var(--gold);
+}
+
+.problem-body {
+  font-size: 1rem;
+  color: var(--gray);
+  line-height: 2;
+  font-weight: 300;
+}
+
+.problem-body strong {
+  color: var(--white);
+  font-weight: 500;
+}
+
+.problem-divider {
+  width: 60px;
+  height: 2px;
+  background: var(--gold);
+  margin: 2rem auto 0;
+  opacity: 0.5;
+}
+
+/* ===== SECTION 3: HOW IT WORKS ===== */
+.steps {
+  background: var(--bg-light);
+  padding: 0 6vw;
+}
+
+.steps-inner {
+  max-width: 1000px;
+  width: 100%;
+}
+
+.steps-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--green);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.steps-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  text-align: center;
+  margin-bottom: 4rem;
+  font-weight: 600;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3rem;
+}
+
+.step-card {
+  text-align: center;
+}
+
+.step-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 3rem;
+  font-weight: 500;
+  color: var(--green);
+  opacity: 0.3;
+  margin-bottom: 1rem;
+}
+
+.step-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.step-heading {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+
+.step-desc {
+  font-size: 0.85rem;
+  color: var(--gray);
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+/* ===== SECTION 4: SCORE DEMO ===== */
+.score {
+  background: var(--bg);
+  padding: 0 6vw;
+}
+
+.score-inner {
+  max-width: 700px;
+  width: 100%;
+}
+
+.score-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.score-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  text-align: center;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.score-subtitle {
+  text-align: center;
+  color: var(--gray);
+  font-size: 0.9rem;
+  margin-bottom: 3rem;
+  font-weight: 300;
+}
+
+.score-total {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.score-total-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 4rem;
+  font-weight: 500;
+  color: var(--green);
+}
+
+.score-total-label {
+  font-size: 0.8rem;
+  color: var(--gray);
+  margin-top: 0.3rem;
+}
+
+.phase-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.phase-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.phase-name {
+  width: 100px;
+  font-size: 0.85rem;
+  text-align: right;
+  flex-shrink: 0;
+  color: var(--gray);
+}
+
+.phase-bar-track {
+  flex: 1;
+  height: 28px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.phase-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--green), #2dd47a);
+  width: 0%;
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.phase-bar-fill.gold {
+  background: linear-gradient(90deg, var(--gold), #c49530);
+}
+
+.phase-score {
+  width: 50px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  color: var(--white);
+}
+
+/* ===== SECTION 5: PRICING ===== */
+.pricing {
+  background: var(--bg-light);
+  padding: 0 6vw;
+  text-align: center;
+}
+
+.pricing-inner {
+  max-width: 500px;
+  width: 100%;
+}
+
+.pricing-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.pricing-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  margin-bottom: 2.5rem;
+  font-weight: 600;
+}
+
+.pricing-card {
+  background: var(--bg);
+  border: 1px solid var(--dark-gray);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+
+.pricing-amount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.pricing-yen {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.2rem;
+  color: var(--gray);
+}
+
+.pricing-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 3.5rem;
+  font-weight: 500;
+  color: var(--white);
+}
+
+.pricing-period {
+  font-size: 1rem;
+  color: var(--gray);
+}
+
+.pricing-free {
+  display: inline-block;
+  background: var(--gold-dim);
+  border: 1px solid rgba(212, 168, 67, 0.3);
+  color: var(--gold);
+  padding: 0.4rem 1.2rem;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+
+.pricing-features {
+  list-style: none;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.pricing-features li {
+  font-size: 0.9rem;
+  color: var(--gray);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.pricing-features li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ===== SECTION 6: CTA ===== */
+.cta {
+  background: var(--bg);
+  text-align: center;
+  padding: 0 6vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-title {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.6;
+  margin-bottom: 1.2rem;
+}
+
+.cta-title em {
+  font-style: normal;
+  color: var(--green);
+}
+
+.cta-sub {
+  color: var(--gray);
+  font-size: 0.9rem;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: #06c755;
+  color: #fff;
+  text-decoration: none;
+  padding: 1rem 2.5rem;
+  border-radius: 100px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 30px rgba(6, 199, 85, 0.3);
+}
+
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(6, 199, 85, 0.4);
+}
+
+.cta-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: #fff;
+}
+
+.cta-note {
+  margin-top: 1.2rem;
+  font-size: 0.75rem;
+  color: var(--gray);
+}
+
+/* ===== FOOTER ===== */
+footer {
+  scroll-snap-align: end;
+  background: var(--bg-light);
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.7rem;
+  color: var(--gray);
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  html {
+    scroll-snap-type: y proximity;
+  }
+
+  section {
+    height: 100vh;
+    height: 100dvh;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .hero {
+    padding: 2rem 5vw;
+  }
+
+  .hero-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+  }
+
+  .hero-text {
+    max-width: 100%;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-sub {
+    font-size: 0.9rem;
+  }
+
+  .phone {
+    width: 220px;
+    height: 460px;
+    border-radius: 32px;
+  }
+
+  .phone-screen {
+    border-radius: 24px;
+  }
+
+  .phone-notch {
+    width: 100px;
+    height: 22px;
+    border-radius: 0 0 14px 14px;
+  }
+
+  .phone-header {
+    padding: 28px 12px 8px;
+  }
+
+  .phone-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.6rem;
+  }
+
+  .phone-name {
+    font-size: 0.65rem;
+  }
+
+  .chat-bubble {
+    font-size: 0.6rem;
+    padding: 8px 11px;
+  }
+
+  .problem-title {
+    font-size: 1.4rem;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .steps {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  .score {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  .phase-name {
+    width: 74px;
+    font-size: 0.75rem;
+  }
+
+  .score-total-num {
+    font-size: 3rem;
+  }
+
+  .pricing-num {
+    font-size: 2.8rem;
+  }
+}
+
+/* Glow line at top of each section */
+.glow-top {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+  opacity: 0.4;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-label reveal">SwingLens AI</div>
+      <h1 class="hero-title reveal reveal-delay-1">
+        LINEで送るだけ。<br>AIが<em>スイング</em>を<br>変える。
+      </h1>
+      <p class="hero-sub reveal reveal-delay-2">
+        動画を送信 → 7フェーズAI解析 → 即フィードバック。<br>
+        練習場で、自宅で、いつでもプロの目を。
+      </p>
+      <div class="hero-price reveal reveal-delay-3">
+        <span>月額</span><strong>¥1,000</strong><span>— 初回1回無料</span>
+      </div>
+    </div>
+
+    <div class="phone-wrap reveal reveal-delay-2">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-header">
+            <div class="phone-avatar">SL</div>
+            <div class="phone-name">SwingLens AI</div>
+          </div>
+          <div class="phone-chat">
+            <div class="chat-bubble user">🎥 スイング動画を送信</div>
+            <div class="chat-bubble ai">解析中...あと数秒です⏳</div>
+            <div class="chat-bubble ai"><strong>あなたのスコア：72点</strong> 🎯
+
+切り返しのタイミングが
+少し早い！ここを直すだけで
+飛距離+15yd見込めます🚀</div>
+            <div class="chat-bubble user">具体的にどう直す？</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROBLEM ===== -->
+<section class="problem">
+  <div class="glow-top"></div>
+  <div class="problem-inner">
+    <h2 class="problem-title reveal">
+      <em>100球打っても</em><br>
+      上手くならない理由、<br>
+      知ってますか？
+    </h2>
+    <p class="problem-body reveal reveal-delay-1">
+      練習場で黙々と打ち続けても、<strong>間違ったフォームの反復</strong>になっているだけ。<br>
+      レッスンプロに見てもらうのは月1回がやっと。<br>
+      その間のスイングは、誰も見ていない。
+    </p>
+    <div class="problem-divider reveal reveal-delay-2"></div>
+    <p class="problem-body reveal reveal-delay-2" style="margin-top: 2rem;">
+      <strong>SwingLens AI</strong>なら、毎回の練習に<strong>AIコーチ</strong>が付く。<br>
+      動画を送るだけ。答えは数秒で返ってくる。
+    </p>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="steps">
+  <div class="glow-top"></div>
+  <div class="steps-inner">
+    <div class="steps-label reveal">How it works</div>
+    <h2 class="steps-title reveal reveal-delay-1">3ステップ、それだけ。</h2>
+    <div class="steps-grid">
+      <div class="step-card reveal reveal-delay-1">
+        <div class="step-num">01</div>
+        <div class="step-icon">📱</div>
+        <div class="step-heading">動画を送る</div>
+        <p class="step-desc">LINEでスイング動画を送信。<br>正面 or 後方、どちらでもOK。</p>
+      </div>
+      <div class="step-card reveal reveal-delay-2">
+        <div class="step-num">02</div>
+        <div class="step-icon">🤖</div>
+        <div class="step-heading">AIが7フェーズ解析</div>
+        <p class="step-desc">アドレスからフィニッシュまで<br>全フェーズをスコアリング。</p>
+      </div>
+      <div class="step-card reveal reveal-delay-3">
+        <div class="step-num">03</div>
+        <div class="step-icon">💬</div>
+        <div class="step-heading">即座にフィードバック</div>
+        <p class="step-desc">点数＋改善ポイント＋<br>練習ドリルをLINEでお届け。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SCORE DEMO ===== -->
+<section class="score">
+  <div class="glow-top"></div>
+  <div class="score-inner">
+    <div class="score-label reveal">Score breakdown</div>
+    <h2 class="score-title reveal reveal-delay-1">7フェーズ解析</h2>
+    <p class="score-subtitle reveal reveal-delay-1">PGAツアープロ = 100点 基準</p>
+
+    <div class="score-total reveal reveal-delay-2">
+      <div class="score-total-num" data-target="72">0</div>
+      <div class="score-total-label">TOTAL SCORE</div>
+    </div>
+
+    <div class="phase-list">
+      <div class="phase-row reveal" data-score="80">
+        <div class="phase-name">アドレス</div>
+        <div class="phase-bar-track"><div class="phase-bar-fill"></div></div>
+        <div class="phase-score mono">8 / 10</div>
+      </div>
+      <div class="phase-row reveal" data-score="70">
+        <div class="phase-name">テイクバック</div>
+        <div class="phase-bar-track"><div class="phase-bar-fill"></div></div>
+        <div class="phase-score mono">7 / 10</div>
+      </div>
+      <div class="phase-row reveal" data-score="70">
+        <div class="phase-name">トップ</div>
+        <div class="phase-bar-track"><div class="phase-bar-fill"></div></div>
+        <div class="phase-score mono">7 / 10</div>
+      </div>
+      <div class="phase-row reveal" data-score="60">
+        <div class="phase-name">切り返し</div>
+        <div class="phase-bar-track"><div class="phase-bar-fill gold"></div></div>
+        <div class="phase-score mono">6 / 10</div>
+      </div>
+      <div class="phase-row reveal" data-score="70">
+        <div class="phase-name">インパクト</div>
+        <div class="phase-bar-track"><div class="phase-bar-fill"></div></div>
+        <div class="phase-score mono">7 / 10</div>
+      </div>
+      <div class="phase-row reveal" data-score="80">
+        <div class="phase-name">フォロー</div>
+        <div class="phase-bar-track"><div class="phase-bar-fill"></div></div>
+        <div class="phase-score mono">8 / 10</div>
+      </div>
+      <div class="phase-row reveal" data-score="70">
+        <div class="phase-name">フィニッシュ</div>
+        <div class="phase-bar-track"><div class="phase-bar-fill"></div></div>
+        <div class="phase-score mono">7 / 10</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section class="pricing">
+  <div class="glow-top"></div>
+  <div class="pricing-inner">
+    <div class="pricing-label reveal">Pricing</div>
+    <h2 class="pricing-title reveal reveal-delay-1">シンプルな料金</h2>
+    <div class="pricing-card reveal reveal-delay-2">
+      <div class="pricing-amount">
+        <span class="pricing-yen">¥</span>
+        <span class="pricing-num">1,000</span>
+        <span class="pricing-period">/月</span>
+      </div>
+      <div class="pricing-free">初回1回 無料で体験</div>
+      <ul class="pricing-features">
+        <li>月間解析回数 無制限</li>
+        <li>7フェーズ詳細スコアリング</li>
+        <li>プロ比較・過去比較モード</li>
+        <li>自由質問でAIに何でも聞ける</li>
+        <li>LINEだけで完結、アプリ不要</li>
+        <li>いつでも解約OK</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta">
+  <div class="glow-top"></div>
+  <h2 class="cta-title reveal">
+    まずは<em>1回、無料</em>で<br>試してみませんか？
+  </h2>
+  <p class="cta-sub reveal reveal-delay-1">LINEで友だち追加するだけ。クレジットカード不要。</p>
+  <a href="https://lin.ee/placeholder" class="cta-btn reveal reveal-delay-2">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386a.63.63 0 0 1-.63-.629V8.108a.63.63 0 0 1 .63-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016a.63.63 0 0 1-.63.63.626.626 0 0 1-.51-.262l-2.417-3.296v2.928a.632.632 0 0 1-.63.63.631.631 0 0 1-.63-.63V8.108a.63.63 0 0 1 .63-.63c.2 0 .385.096.504.259l2.424 3.304V8.108a.63.63 0 0 1 1.26 0v4.771zm-5.741 0a.63.63 0 0 1-1.26 0V8.108a.63.63 0 0 1 1.26 0v4.771zm-2.304.63H5.08a.63.63 0 0 1-.63-.63V8.108a.63.63 0 0 1 1.26 0v4.141h1.755c.349 0 .63.283.63.63 0 .344-.282.63-.63.63zM24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+    </svg>
+    友だち追加して無料体験
+  </a>
+  <p class="cta-note reveal reveal-delay-3">※ 解約はLINEからいつでも可能です</p>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  &copy; 2026 SwingLens AI
+</footer>
+
+<script>
+// ===== IntersectionObserver for reveal animations =====
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, {
+  threshold: 0.15,
+  rootMargin: '0px 0px -40px 0px'
+});
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ===== Score bar animation =====
+const scoreSection = document.querySelector('.score');
+let scoreFilled = false;
+
+const scoreObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !scoreFilled) {
+      scoreFilled = true;
+
+      // Animate bars
+      document.querySelectorAll('.phase-row').forEach((row, i) => {
+        const pct = row.dataset.score;
+        const fill = row.querySelector('.phase-bar-fill');
+        setTimeout(() => {
+          fill.style.width = pct + '%';
+        }, i * 120);
+      });
+
+      // Animate total score counter
+      const totalEl = document.querySelector('.score-total-num');
+      const target = parseInt(totalEl.dataset.target);
+      let current = 0;
+      const step = target / 40;
+      const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        totalEl.textContent = Math.round(current);
+      }, 30);
+    }
+  });
+}, { threshold: 0.3 });
+
+scoreObserver.observe(scoreSection);
+</script>
+</body>
+</html>

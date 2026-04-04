@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwingLens AI — LINEで送るだけ。AIがスイングを丸裸にする。</title>
+<meta name="description" content="ゴルフ動画をLINEで送るだけ。AIが7フェーズ解析であなたのスイングを数値化。月額1,000円のマイクロコーチ。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ====== RESET & BASE ====== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f0d;--bg2:#0f1613;--bg3:#141e1a;
+  --green:#4ae68a;--green-dim:#2a8a52;--gold:#d4a843;
+  --text:#e8efe9;--text-dim:#8a9b90;--text-muted:#5a6b60;
+  --glass:rgba(20,30,26,0.6);--glass-border:rgba(74,230,138,0.12);
+  --radius:16px;--radius-sm:10px;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:'Noto Sans JP',sans-serif;font-weight:400;
+  background:var(--bg);color:var(--text);
+  line-height:1.7;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:'Inter','Noto Sans JP',sans-serif;font-weight:700;line-height:1.2;letter-spacing:-0.02em}
+.mono{font-family:'DM Mono',monospace}
+a{color:var(--green);text-decoration:none}
+img{max-width:100%;display:block}
+
+/* ====== UTILITY ====== */
+.container{max-width:1120px;margin:0 auto;padding:0 24px}
+.section{padding:100px 0}
+.section-label{
+  font-family:'DM Mono',monospace;font-size:.75rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--green);margin-bottom:12px;
+}
+.section-title{font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:20px;color:var(--text)}
+.section-sub{color:var(--text-dim);font-size:1rem;max-width:560px;margin-bottom:48px}
+
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* Glass card */
+.glass{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+}
+
+/* ====== NAV ====== */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:16px 24px;
+  background:rgba(10,15,13,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(74,230,138,0.08);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.nav-logo{font-family:'Inter',sans-serif;font-size:1.3rem;font-weight:800;color:var(--text);letter-spacing:-0.03em}
+.nav-logo span{color:var(--green)}
+.nav-cta{
+  padding:8px 20px;border-radius:50px;font-size:.85rem;font-weight:500;
+  background:var(--green);color:var(--bg);border:none;cursor:pointer;
+  transition:transform .2s,box-shadow .2s;
+}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(74,230,138,0.3)}
+
+/* ====== HERO ====== */
+.hero{
+  min-height:100vh;padding-top:100px;
+  display:flex;align-items:center;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 40%,rgba(74,230,138,0.06),transparent),
+    radial-gradient(ellipse 40% 60% at 20% 80%,rgba(212,168,67,0.04),transparent),
+    var(--bg);
+}
+.hero .container{
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+}
+.hero-text .badge{
+  display:inline-block;padding:6px 14px;border-radius:50px;font-size:.75rem;
+  font-weight:500;color:var(--green);
+  background:rgba(74,230,138,0.08);border:1px solid rgba(74,230,138,0.15);
+  margin-bottom:24px;
+}
+.hero-text h1{
+  font-size:clamp(2rem,5vw,3.4rem);margin-bottom:20px;
+  line-height:1.15;
+}
+.hero-text h1 .accent{color:var(--green)}
+.hero-text h1 .gold{color:var(--gold)}
+.hero-text .hero-sub{color:var(--text-dim);font-size:1.05rem;margin-bottom:36px;max-width:440px}
+.hero-buttons{display:flex;gap:14px;flex-wrap:wrap}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 32px;border-radius:50px;font-size:1rem;font-weight:600;
+  background:var(--green);color:var(--bg);border:none;cursor:pointer;
+  transition:transform .2s,box-shadow .2s;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(74,230,138,0.25)}
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 32px;border-radius:50px;font-size:1rem;font-weight:500;
+  background:transparent;color:var(--text);border:1px solid var(--glass-border);cursor:pointer;
+  transition:border-color .2s,color .2s;
+}
+.btn-secondary:hover{border-color:var(--green);color:var(--green)}
+
+/* ====== PHONE MOCKUP ====== */
+.phone-wrapper{display:flex;justify-content:center}
+.phone{
+  width:300px;height:620px;
+  background:var(--bg2);
+  border:3px solid #2a3530;
+  border-radius:40px;
+  padding:16px;
+  position:relative;
+  box-shadow:0 30px 80px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.phone-notch{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  width:120px;height:28px;background:#111;border-radius:0 0 16px 16px;
+  z-index:2;
+}
+.phone-screen{
+  width:100%;height:100%;background:#0d1410;border-radius:28px;
+  padding:48px 14px 14px;overflow:hidden;
+  display:flex;flex-direction:column;gap:10px;
+}
+.phone-header{
+  text-align:center;font-size:.7rem;color:var(--text-muted);
+  margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.phone-header strong{color:var(--green);font-weight:600}
+.chat-bubble{
+  max-width:85%;padding:11px 15px;border-radius:18px;font-size:.8rem;
+  line-height:1.55;opacity:0;animation:bubbleIn .5s ease forwards;
+  word-break:break-word;
+}
+.chat-bubble.user{
+  align-self:flex-end;
+  background:var(--green);color:var(--bg);
+  border-bottom-right-radius:4px;
+}
+.chat-bubble.ai{
+  align-self:flex-start;
+  background:var(--bg3);color:var(--text);
+  border:1px solid var(--glass-border);
+  border-bottom-left-radius:4px;
+}
+.chat-bubble.ai strong{color:var(--gold)}
+.chat-bubble:nth-child(2){animation-delay:.6s}
+.chat-bubble:nth-child(3){animation-delay:1.6s}
+.chat-bubble:nth-child(4){animation-delay:3s}
+.chat-bubble:nth-child(5){animation-delay:4.2s}
+@keyframes bubbleIn{
+  from{opacity:0;transform:translateY(14px) scale(.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* ====== HOW IT WORKS ====== */
+.how{background:var(--bg)}
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.how-card{
+  padding:36px 28px;border-radius:var(--radius);cursor:pointer;
+  background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease;
+  position:relative;overflow:hidden;
+}
+.how-card:hover{
+  transform:translateY(-6px);
+  border-color:rgba(74,230,138,0.3);
+  box-shadow:0 20px 50px rgba(0,0,0,0.3),0 0 40px rgba(74,230,138,0.06);
+}
+.how-card .step-num{
+  font-family:'DM Mono',monospace;font-size:3rem;font-weight:700;
+  color:rgba(74,230,138,0.1);position:absolute;top:16px;right:20px;
+}
+.how-card .icon{
+  width:48px;height:48px;border-radius:12px;
+  background:rgba(74,230,138,0.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;margin-bottom:20px;
+}
+.how-card h3{font-size:1.15rem;margin-bottom:10px;font-family:'Noto Sans JP',sans-serif;font-weight:700}
+.how-card p{color:var(--text-dim);font-size:.9rem;line-height:1.6}
+.how-card .detail{
+  max-height:0;overflow:hidden;transition:max-height .4s ease,opacity .3s ease;opacity:0;
+  margin-top:0;font-size:.82rem;color:var(--text-muted);line-height:1.6;
+}
+.how-card:hover .detail,.how-card.active .detail{max-height:120px;opacity:1;margin-top:12px}
+
+/* ====== INTERACTIVE DEMO (STAR SECTION) ====== */
+.demo{background:var(--bg2);position:relative;overflow:hidden}
+.demo::before{
+  content:'';position:absolute;top:-200px;right:-200px;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(74,230,138,0.05),transparent 70%);
+  pointer-events:none;
+}
+.tabs{display:flex;gap:8px;margin-bottom:32px;flex-wrap:wrap}
+.tab-btn{
+  padding:10px 24px;border-radius:50px;font-size:.9rem;font-weight:500;
+  background:var(--glass);color:var(--text-dim);
+  border:1px solid var(--glass-border);cursor:pointer;
+  transition:all .25s ease;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.tab-btn:hover{color:var(--text);border-color:rgba(74,230,138,0.25)}
+.tab-btn.active{
+  background:rgba(74,230,138,0.12);color:var(--green);
+  border-color:rgba(74,230,138,0.4);
+}
+.tab-panels{position:relative;min-height:420px}
+.tab-panel{
+  display:none;animation:fadeIn .4s ease;
+}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Demo cards */
+.demo-card{
+  padding:32px;border-radius:var(--radius);
+  background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  max-width:640px;
+}
+.demo-card .card-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:24px;
+  padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.demo-card .card-header .badge{
+  padding:4px 10px;border-radius:50px;font-size:.7rem;font-weight:600;
+  font-family:'DM Mono',monospace;
+}
+.demo-card .card-header h3{font-size:1.1rem;font-family:'Noto Sans JP',sans-serif;font-weight:700}
+.demo-card .total-score{
+  text-align:center;margin-bottom:28px;
+}
+.demo-card .total-score .num{
+  font-family:'DM Mono',monospace;font-size:3.2rem;font-weight:700;color:var(--green);
+}
+.demo-card .total-score .max{
+  font-family:'DM Mono',monospace;font-size:1.2rem;color:var(--text-muted);
+}
+.demo-card .total-score .label{
+  font-size:.8rem;color:var(--text-dim);margin-top:4px;
+}
+
+/* Phase rows */
+.phase-row{
+  display:flex;align-items:center;gap:12px;padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.phase-row:last-child{border-bottom:none}
+.phase-name{
+  width:100px;flex-shrink:0;font-size:.82rem;color:var(--text-dim);
+}
+.phase-bar-wrap{flex:1;display:flex;align-items:center;gap:10px}
+.phase-bar{
+  flex:1;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;
+  overflow:hidden;position:relative;
+}
+.phase-bar-fill{
+  height:100%;border-radius:5px;
+  transition:width .8s cubic-bezier(.4,0,.2,1);
+  width:0;
+}
+.phase-bar-fill.green{background:linear-gradient(90deg,var(--green-dim),var(--green))}
+.phase-bar-fill.gold{background:linear-gradient(90deg,#a07830,var(--gold))}
+.phase-bar-fill.dim{background:rgba(255,255,255,0.15)}
+.phase-score{
+  font-family:'DM Mono',monospace;font-size:.85rem;font-weight:500;
+  min-width:32px;text-align:right;
+}
+.phase-score.green-text{color:var(--green)}
+.phase-score.gold-text{color:var(--gold)}
+
+/* Comparison extras */
+.gap-badge{
+  font-family:'DM Mono',monospace;font-size:.7rem;
+  padding:2px 8px;border-radius:50px;
+  background:rgba(212,168,67,0.15);color:var(--gold);
+  min-width:44px;text-align:center;
+}
+.change-arrow{
+  font-family:'DM Mono',monospace;font-size:.78rem;font-weight:600;
+  color:var(--green);min-width:60px;text-align:center;
+}
+.change-arrow.up{color:var(--green)}
+
+/* Phase bar dual (past comparison) */
+.phase-bar-dual{flex:1;display:flex;flex-direction:column;gap:3px}
+.phase-bar-dual .phase-bar{height:6px}
+
+/* Advice box */
+.advice-box{
+  margin-top:24px;padding:18px 20px;border-radius:var(--radius-sm);
+  background:rgba(74,230,138,0.06);border:1px solid rgba(74,230,138,0.12);
+}
+.advice-box .advice-title{
+  font-size:.82rem;font-weight:700;color:var(--green);margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.advice-box p{font-size:.85rem;color:var(--text-dim);line-height:1.65}
+
+/* Demo text lines (actual prompt output style) */
+.demo-line-block{margin-bottom:20px}
+.demo-sections{margin-top:20px}
+.demo-line{
+  font-size:.82rem;line-height:1.7;color:var(--text);
+  font-family:'Noto Sans JP',sans-serif;
+  word-break:break-all;
+}
+.demo-line.dim{color:var(--text-dim);font-size:.8rem}
+
+/* ====== FEATURES (removed) ====== */
+/* .features{background:var(--bg)} */
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;
+}
+.feature-card{
+  padding:28px 24px;border-radius:var(--radius);
+  background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .3s ease,border-color .3s ease;
+}
+.feature-card:hover{transform:translateY(-4px);border-color:rgba(74,230,138,0.25)}
+.feature-card .f-icon{font-size:1.6rem;margin-bottom:14px}
+.feature-card h4{font-size:1rem;font-weight:700;margin-bottom:8px;font-family:'Noto Sans JP',sans-serif}
+.feature-card p{font-size:.85rem;color:var(--text-dim);line-height:1.6}
+
+/* Mobile: vertical stack instead of horizontal scroll to prevent overflow */
+@media(max-width:768px){
+  .features-grid{
+    display:grid;grid-template-columns:1fr;gap:16px;
+  }
+  .feature-card{min-width:0}
+}
+
+/* ====== PRICING ====== */
+.pricing{background:var(--bg2)}
+.pricing-card{
+  max-width:440px;margin:0 auto;padding:44px 40px;border-radius:var(--radius);
+  background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  text-align:center;position:relative;overflow:hidden;
+}
+.pricing-card::before{
+  content:'';position:absolute;top:-1px;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--green),var(--gold));
+}
+.pricing-card .plan-name{
+  font-family:'DM Mono',monospace;font-size:.8rem;letter-spacing:.12em;
+  color:var(--green);margin-bottom:16px;text-transform:uppercase;
+}
+.pricing-card .price{
+  font-family:'DM Mono',monospace;font-size:3.5rem;font-weight:700;
+  color:var(--text);line-height:1;margin-bottom:4px;
+}
+.pricing-card .price span{font-size:1.2rem;color:var(--text-dim)}
+.pricing-card .price-sub{font-size:.85rem;color:var(--text-dim);margin-bottom:28px}
+.pricing-card .free-badge{
+  display:inline-block;padding:6px 18px;border-radius:50px;
+  font-size:.82rem;font-weight:600;
+  background:rgba(212,168,67,0.12);color:var(--gold);
+  border:1px solid rgba(212,168,67,0.2);margin-bottom:28px;
+}
+.pricing-list{list-style:none;text-align:left;margin-bottom:32px}
+.pricing-list li{
+  padding:10px 0;font-size:.9rem;color:var(--text-dim);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex;align-items:center;gap:10px;
+}
+.pricing-list li::before{
+  content:'';width:18px;height:18px;border-radius:50%;flex-shrink:0;
+  background:rgba(74,230,138,0.12);
+  display:flex;align-items:center;justify-content:center;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='%234ae68a' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.5 11.5L3 8l1-1 2.5 2.5L12 4l1 1z'/%3E%3C/svg%3E");
+  background-size:14px;background-position:center;background-repeat:no-repeat;
+}
+.pricing-card .btn-primary{width:100%;justify-content:center}
+
+/* ====== TESTIMONIALS ====== */
+.testimonials{background:var(--bg)}
+.testimonial-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.testimonial-card{
+  padding:28px;border-radius:var(--radius);
+  background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.testimonial-card .stars{color:var(--gold);font-size:.9rem;margin-bottom:12px;letter-spacing:2px}
+.testimonial-card p{font-size:.88rem;color:var(--text-dim);line-height:1.65;margin-bottom:16px}
+.testimonial-card .author{display:flex;align-items:center;gap:10px}
+.testimonial-card .avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(74,230,138,0.1);display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;color:var(--green);font-weight:700;
+}
+.testimonial-card .author-info .name{font-size:.82rem;font-weight:600}
+.testimonial-card .author-info .meta{font-size:.72rem;color:var(--text-muted)}
+
+/* ====== CTA ====== */
+.cta-section{
+  background:linear-gradient(160deg,var(--bg2),var(--bg));
+  padding:100px 0;text-align:center;
+}
+.cta-section h2{font-size:clamp(1.6rem,4vw,2.6rem);margin-bottom:16px}
+.cta-section .cta-sub{color:var(--text-dim);font-size:1rem;margin-bottom:40px;max-width:480px;margin-left:auto;margin-right:auto}
+.cta-line-btn{
+  display:inline-flex;align-items:center;gap:12px;
+  padding:16px 40px;border-radius:50px;font-size:1.1rem;font-weight:700;
+  background:#06c755;color:#fff;border:none;cursor:pointer;
+  transition:transform .2s,box-shadow .2s;
+}
+.cta-line-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(6,199,85,0.3)}
+.cta-line-btn svg{width:24px;height:24px;fill:#fff}
+.cta-small{font-size:.8rem;color:var(--text-muted);margin-top:16px}
+
+/* ====== FOOTER ====== */
+.footer{
+  padding:40px 24px;text-align:center;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+.footer p{font-size:.8rem;color:var(--text-muted)}
+
+/* ====== RESPONSIVE ====== */
+@media(max-width:900px){
+  .hero .container{grid-template-columns:1fr;text-align:center}
+  .hero-text .hero-sub{margin-left:auto;margin-right:auto}
+  .hero-buttons{justify-content:center}
+  .phone{width:260px;height:540px}
+  .how-grid{grid-template-columns:1fr}
+  .testimonial-grid{grid-template-columns:1fr}
+  .demo-card{padding:24px 20px}
+  .phase-name{width:72px;font-size:.75rem}
+}
+@media(max-width:480px){
+  .section{padding:70px 0}
+  .phone{width:240px;height:500px}
+  .chat-bubble{font-size:.73rem;padding:9px 12px}
+  .pricing-card{padding:32px 24px}
+  .tabs{gap:6px}
+  .tab-btn{padding:8px 16px;font-size:.8rem}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">Swing<span>Lens</span> AI</div>
+  <button class="nav-cta" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">LINE で始める</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-text">
+      <div class="badge">AI Swing Analysis for LINE</div>
+      <h1>
+        送るだけで、<br>
+        スイングが<span class="accent">数値</span>になる。<br>
+        <span class="gold">月額1,000円</span>のAIコーチ。
+      </h1>
+      <p class="hero-sub">
+        LINEに動画を送るだけ。7フェーズ解析であなたのスイングを丸裸にします。プロとの差も、過去の自分との比較も、全部AI任せ。
+      </p>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1"/></svg>
+          LINEで無料体験
+        </button>
+        <button class="btn-secondary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">解析デモを見る ↓</button>
+      </div>
+    </div>
+    <div class="phone-wrapper">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-header"><strong>SwingLens AI</strong> とのトーク</div>
+          <div class="chat-bubble user">&#x1F3A5; スイング動画を送信</div>
+          <div class="chat-bubble ai">解析中...あと数秒です&#x23F3;</div>
+          <div class="chat-bubble ai"><strong>あなたのスコア：72点</strong> &#x1F3AF;<br><br>切り返しのタイミングが<br>少し早い！ここを直すだけで<br>飛距離+15yd見込めます&#x1F680;</div>
+          <div class="chat-bubble user">具体的にどう直す？</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how section" id="how">
+  <div class="container">
+    <div class="section-label reveal">How it works</div>
+    <h2 class="section-title reveal">たった3ステップ</h2>
+    <p class="section-sub reveal">面倒な設定はゼロ。LINEさえあれば今すぐ始められます。</p>
+    <div class="how-grid">
+      <div class="how-card reveal">
+        <div class="step-num">01</div>
+        <div class="icon">&#x1F4F1;</div>
+        <h3>LINEで友だち追加</h3>
+        <p>QRコードを読み取って友だち追加するだけ。アプリのインストールは不要です。</p>
+        <div class="detail">普段使っているLINEがそのまま使えるので、新しいアプリを覚える必要はありません。</div>
+      </div>
+      <div class="how-card reveal">
+        <div class="step-num">02</div>
+        <div class="icon">&#x1F3A5;</div>
+        <h3>スイング動画を送信</h3>
+        <p>練習場やコースで撮った動画をトークに送ります。正面・後方どちらもOK。</p>
+        <div class="detail">10秒程度のスイング動画がベスト。スマホで撮影した動画がそのまま使えます。</div>
+      </div>
+      <div class="how-card reveal">
+        <div class="step-num">03</div>
+        <div class="icon">&#x1F4CA;</div>
+        <h3>AIが解析レポート</h3>
+        <p>7フェーズの詳細スコアと具体的な改善アドバイスが数十秒で届きます。</p>
+        <div class="detail">アドレスからフィニッシュまで、スイングの全工程を数値化。何をどう直すべきか明確にします。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTERACTIVE DEMO -->
+<section class="demo section" id="demo">
+  <div class="container">
+    <div class="section-label reveal">Interactive Demo</div>
+    <h2 class="section-title reveal">&#x1F50D; 解析モードを体験する</h2>
+    <p class="section-sub reveal">タブを切り替えて、3つの解析モードを試してみてください。これが実際に届くレポートのイメージです。</p>
+
+    <div class="tabs reveal">
+      <button class="tab-btn active" data-tab="self">&#x1F3AF; 自分解析</button>
+      <button class="tab-btn" data-tab="pro">&#x1F451; プロ比較</button>
+      <button class="tab-btn" data-tab="past">&#x1F4C8; 過去比較</button>
+    </div>
+
+    <div class="tab-panels reveal">
+
+      <!-- TAB: 自分解析 -->
+      <div class="tab-panel active" id="panel-self">
+        <div class="demo-card glass">
+          <div class="card-header">
+            <div class="badge" style="background:rgba(74,230,138,0.12);color:var(--green)">SELF ANALYSIS</div>
+            <h3>自分のスイングを解析</h3>
+          </div>
+          <div class="demo-line-block">
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">💬 総合コメント</div>
+            <div class="demo-line dim">全体的にアドレスの安定感は悪くない。ただし切り返しが上半身主導で、インパクトの再現性が低い。ここを放置すると練習量に対して伸びが鈍化する。</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+          </div>
+          <div class="total-score">
+            <span class="num" data-target="72">0</span><span class="max">/100</span>
+            <div class="label">総合スコア（PGAプロ = 100点）</div>
+          </div>
+          <div id="self-phases">
+            <!-- filled by JS -->
+          </div>
+          <div class="demo-sections">
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🌟 良い点</div>
+            <div class="demo-line dim">① アドレスの前傾角が安定している</div>
+            <div class="demo-line dim">② フォローで左肘が伸びている</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🔧 改善点TOP3</div>
+            <div class="demo-line dim">①【最重要】切り返しを下半身リードに</div>
+            <div class="demo-line dim">② トップでの左手首の角度を維持</div>
+            <div class="demo-line dim">③ フィニッシュで体重が左足に乗り切る</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🎯 最優先で直す1つ</div>
+            <div class="demo-line dim">「切り返し」を直せ。上半身から降りている。左腰リードを意識し、下半身から始動するだけで飛距離+15yd見込める。</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🏋️ おすすめ練習</div>
+            <div class="demo-line dim">ステップドリル（左足踏み込み→スイング）を30球</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: プロ比較 -->
+      <div class="tab-panel" id="panel-pro">
+        <div class="demo-card glass">
+          <div class="card-header">
+            <div class="badge" style="background:rgba(212,168,67,0.12);color:var(--gold)">PRO COMPARISON</div>
+            <h3>プロ選手との比較</h3>
+          </div>
+          <div class="demo-line-block">
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">💬 総合コメント</div>
+            <div class="demo-line dim">プロと最も差が出ているのは切り返し。プロは下半身リードで自然にクラブが降りるが、あなたは手・肩から始動している。ここが全体効率を下げている最大原因。</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+          </div>
+          <div class="total-score">
+            <span class="num" data-target="72" style="color:var(--green)">0</span><span class="max">/100</span>
+            <div class="label">あなたのスコア（プロ = 100点満点）</div>
+          </div>
+          <div id="pro-phases">
+            <!-- filled by JS -->
+          </div>
+          <div class="demo-sections">
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🔍 プロとの最大の差</div>
+            <div class="demo-line dim">切り返し（差4点）：プロはトップで一瞬の間を作り左足踏み込みから始動。あなたは腕の力でクラブを引き下ろしている。</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🌟 プロに近い点</div>
+            <div class="demo-line dim">① アドレスの前傾角度はプロとほぼ同等</div>
+            <div class="demo-line dim">② フォローの左肘の伸びが良い</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🎯 最優先で真似する1つ</div>
+            <div class="demo-line dim">「切り返しの間」を真似せよ。トップで0.3秒待ち、左足踏み込みから始動。</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🏋️ おすすめ練習</div>
+            <div class="demo-line dim">左足ステップドリル（踏み込み→スイング）を30球</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: 過去比較 -->
+      <div class="tab-panel" id="panel-past">
+        <div class="demo-card glass">
+          <div class="card-header">
+            <div class="badge" style="background:rgba(74,230,138,0.12);color:var(--green)">PROGRESS TRACKING</div>
+            <h3>過去の自分との比較</h3>
+          </div>
+          <div class="demo-line-block">
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">💬 差分サマリー</div>
+            <div class="demo-line dim">総合51→72点（+21点）。1ヶ月で全フェーズが改善。特にアドレス・フォローの安定が顕著。切り返しは+2だがまだ課題が残る。</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+          </div>
+          <div class="total-score">
+            <span class="mono" style="font-size:1.4rem;color:var(--text-muted)">51</span>
+            <span style="font-size:1.4rem;color:var(--text-muted);margin:0 12px">&#x2192;</span>
+            <span class="num" data-target="72" style="color:var(--green)">0</span><span class="max">/100</span>
+            <div class="label">1ヶ月間の成長 (+21点)</div>
+          </div>
+          <div id="past-phases">
+            <!-- filled by JS -->
+          </div>
+          <div class="demo-sections">
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🌟 改善できた点</div>
+            <div class="demo-line dim">① アドレスの前傾角が安定（6→8）</div>
+            <div class="demo-line dim">② フォローの左肘が伸びるように（6→8）</div>
+            <div class="demo-line dim">③ テイクバックのリズムが改善（5→7）</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🔧 まだ残っている課題</div>
+            <div class="demo-line dim">① 切り返しが依然として上半身主導</div>
+            <div class="demo-line dim">② インパクト時のフェース管理</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🎯 次に直す1つ</div>
+            <div class="demo-line dim">「切り返し」を直せ。4→6に改善したが、まだ上半身主導。ここを8に引き上げれば80点台突入。</div>
+            <div class="demo-line dim">━━━━━━━━━━━━━━</div>
+            <div class="demo-line">🏋️ おすすめ練習</div>
+            <div class="demo-line dim">スローモーション素振り（切り返しの間を体に覚えさせる）を20回×3セット</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- PRICING -->
+<section class="pricing section" id="pricing">
+  <div class="container">
+    <div class="section-label reveal" style="text-align:center">Pricing</div>
+    <h2 class="section-title reveal" style="text-align:center">シンプルな料金体系</h2>
+    <p class="section-sub reveal" style="text-align:center;margin-left:auto;margin-right:auto">レッスンプロ1回分以下の料金で、AI コーチが毎日あなたのスイングを見守ります。</p>
+    <div class="pricing-card glass reveal">
+      <div class="plan-name">Standard Plan</div>
+      <div class="price">&yen;1,000<span>/月</span></div>
+      <div class="price-sub">税込 &#x30FB; いつでも解約OK</div>
+      <div class="free-badge">&#x2728; 初回1回 無料で体験</div>
+      <ul class="pricing-list">
+        <li>スイング動画の AI 解析（無制限）</li>
+        <li>7フェーズ詳細スコアリング</li>
+        <li>プロ比較モード</li>
+        <li>過去比較トラッキング</li>
+        <li>自由質問 AI チャット</li>
+        <li>LINEだけで完結</li>
+      </ul>
+      <button class="btn-primary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1"/></svg>
+        無料で始める
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials section">
+  <div class="container">
+    <div class="section-label reveal" style="text-align:center">Testimonials</div>
+    <h2 class="section-title reveal" style="text-align:center">利用者の声</h2>
+    <p class="section-sub reveal" style="text-align:center;margin-left:auto;margin-right:auto">実際に SwingLens AI を使っているゴルファーの感想です。</p>
+    <div class="testimonial-grid">
+      <div class="testimonial-card reveal">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p>「練習場で撮って即フィードバック。切り返しの癖を指摘されて意識したら、次のラウンドで5打縮まりました。1,000円でこれは安すぎる。」</p>
+        <div class="author">
+          <div class="avatar">T</div>
+          <div class="author-info">
+            <div class="name">田中さん</div>
+            <div class="meta">スコア 98 &#x2192; 93 / 利用3ヶ月</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p>「プロ比較モードが面白い。自分ではできてると思ってたアドレスが実は6/10で、プロとの差に気づけた。目から鱗。」</p>
+        <div class="author">
+          <div class="avatar">S</div>
+          <div class="author-info">
+            <div class="name">鈴木さん</div>
+            <div class="meta">スコア 105 &#x2192; 97 / 利用2ヶ月</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
+        <p>「LINEで完結するのが本当に楽。過去比較で自分の成長がグラフで見えるのが嬉しくて、練習が楽しくなった。」</p>
+        <div class="author">
+          <div class="avatar">M</div>
+          <div class="author-info">
+            <div class="name">松本さん</div>
+            <div class="meta">スコア 112 &#x2192; 102 / 利用1ヶ月</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="container">
+    <h2 class="reveal">今すぐ、スイングを<br>数値化しよう。</h2>
+    <p class="cta-sub reveal">初回1回無料。LINEで友だち追加して、スイング動画を送るだけ。</p>
+    <button class="cta-line-btn reveal" onclick="window.open('https://lin.ee/YOUR_LINE_ID','_blank')">
+      <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1"/></svg>
+      LINE で友だち追加
+    </button>
+    <p class="cta-small">無料体験後、月額 &yen;1,000 で全機能が使えます。いつでも解約OK。</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p>&copy; 2026 SwingLens AI. All rights reserved.</p>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  // ====== DATA ======
+  const phases = ['アドレス','テイクバック','トップ','切り返し','インパクト','フォロー','フィニッシュ'];
+  const selfScores  = [8,7,7,6,7,8,7];
+  const proScores   = [10,10,10,10,10,10,10];
+  const pastScores  = [6,5,5,4,5,6,5];
+  const currScores  = [8,7,7,6,7,8,7];
+
+  // ====== RENDER PHASE ROWS ======
+  function renderSelf(container){
+    container.innerHTML = '';
+    phases.forEach(function(name, i){
+      var s = selfScores[i];
+      var row = document.createElement('div');
+      row.className = 'phase-row';
+      row.innerHTML =
+        '<div class="phase-name">' + name + '</div>' +
+        '<div class="phase-bar-wrap">' +
+          '<div class="phase-bar"><div class="phase-bar-fill green" data-width="' + (s*10) + '"></div></div>' +
+          '<div class="phase-score green-text mono">' + s + '/10</div>' +
+        '</div>';
+      container.appendChild(row);
+    });
+  }
+
+  function renderPro(container){
+    container.innerHTML = '';
+    phases.forEach(function(name, i){
+      var s = selfScores[i];
+      var gap = proScores[i] - s;
+      var row = document.createElement('div');
+      row.className = 'phase-row';
+      row.innerHTML =
+        '<div class="phase-name">' + name + '</div>' +
+        '<div class="phase-bar-wrap">' +
+          '<div class="phase-bar">' +
+            '<div class="phase-bar-fill green" data-width="' + (s*10) + '"></div>' +
+          '</div>' +
+          '<div class="phase-score green-text mono">' + s + '/10</div>' +
+          '<div class="gap-badge">-' + gap + '</div>' +
+        '</div>';
+      container.appendChild(row);
+    });
+  }
+
+  function renderPast(container){
+    container.innerHTML = '';
+    phases.forEach(function(name, i){
+      var old = pastScores[i];
+      var cur = currScores[i];
+      var diff = cur - old;
+      var row = document.createElement('div');
+      row.className = 'phase-row';
+      row.innerHTML =
+        '<div class="phase-name">' + name + '</div>' +
+        '<div class="phase-bar-wrap">' +
+          '<div class="phase-bar-dual">' +
+            '<div class="phase-bar"><div class="phase-bar-fill dim" data-width="' + (old*10) + '"></div></div>' +
+            '<div class="phase-bar"><div class="phase-bar-fill green" data-width="' + (cur*10) + '"></div></div>' +
+          '</div>' +
+          '<div class="phase-score mono" style="color:var(--text-muted)">' + old + '</div>' +
+          '<span style="color:var(--text-muted);font-size:.75rem">&#x2192;</span>' +
+          '<div class="phase-score green-text mono">' + cur + '</div>' +
+          '<div class="change-arrow up">+' + diff + ' &#x2191;</div>' +
+        '</div>';
+      container.appendChild(row);
+    });
+  }
+
+  // Initial render
+  renderSelf(document.getElementById('self-phases'));
+  renderPro(document.getElementById('pro-phases'));
+  renderPast(document.getElementById('past-phases'));
+
+  // ====== ANIMATE BARS ======
+  function animateBars(panel){
+    var fills = panel.querySelectorAll('.phase-bar-fill');
+    fills.forEach(function(fill, i){
+      fill.style.width = '0';
+      setTimeout(function(){
+        fill.style.width = fill.getAttribute('data-width') + '%';
+      }, 80 * i);
+    });
+  }
+
+  // ====== ANIMATE COUNTER ======
+  function animateCounters(panel){
+    var nums = panel.querySelectorAll('.num[data-target]');
+    nums.forEach(function(el){
+      var target = parseInt(el.getAttribute('data-target'));
+      var current = 0;
+      var step = Math.ceil(target / 30);
+      var timer = setInterval(function(){
+        current += step;
+        if(current >= target){ current = target; clearInterval(timer); }
+        el.textContent = current;
+      }, 30);
+    });
+  }
+
+  // ====== TAB SWITCHING ======
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+
+  tabBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var tab = this.getAttribute('data-tab');
+      tabBtns.forEach(function(b){ b.classList.remove('active'); });
+      this.classList.add('active');
+      tabPanels.forEach(function(p){ p.classList.remove('active'); });
+      var panel = document.getElementById('panel-' + tab);
+      panel.classList.add('active');
+      animateBars(panel);
+      animateCounters(panel);
+    });
+  });
+
+  // ====== SCROLL REVEAL (IntersectionObserver) ======
+  var reveals = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('visible');
+          // Animate bars if in demo section
+          if(entry.target.classList.contains('tab-panels')){
+            var activePanel = entry.target.querySelector('.tab-panel.active');
+            if(activePanel){
+              animateBars(activePanel);
+              animateCounters(activePanel);
+            }
+          }
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    reveals.forEach(function(el){ observer.observe(el); });
+  } else {
+    reveals.forEach(function(el){ el.classList.add('visible'); });
+  }
+
+  // ====== HOW-CARD MOBILE TAP ======
+  document.querySelectorAll('.how-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      this.classList.toggle('active');
+    });
+  });
+
+})();
+</script>
+</body>
+</html>

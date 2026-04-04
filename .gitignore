@@ -2,4 +2,10 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
-削除予定/
+
+# ローカル専用（リポジトリに入れない）
+shikumiya-site/
+.clasprc.json
+.vscode/
+.wrangler/
+.claude/

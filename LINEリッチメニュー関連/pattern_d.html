@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 2500px; height: 843px; overflow: hidden; }
+.container {
+  width: 2500px;
+  height: 843px;
+  display: flex;
+  background: linear-gradient(180deg, #14532d 0%, #166534 60%, #15803d 100%);
+  font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+.container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle 2px, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.cell:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 10%;
+  height: 80%;
+  width: 2px;
+  background: rgba(255,255,255,0.15);
+}
+.cell.main-cell {
+  flex: 1.15;
+}
+.icon-wrap {
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+  font-size: 130px;
+  position: relative;
+}
+.cell.main-cell .icon-wrap {
+  background: rgba(250,204,21,0.2);
+  border: 5px solid rgba(250,204,21,0.5);
+}
+.cell:not(.main-cell) .icon-wrap {
+  background: rgba(255,255,255,0.08);
+  border: 4px solid rgba(255,255,255,0.15);
+}
+.title {
+  color: #fff;
+  font-size: 88px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  margin-bottom: 10px;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+}
+.cell.main-cell .title {
+  color: #fde047;
+}
+.subtitle {
+  color: rgba(255,255,255,0.7);
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+.cell.main-cell .subtitle {
+  color: rgba(253,224,71,0.7);
+}
+.cta {
+  margin-top: 22px;
+  background: rgba(250,204,21,0.25);
+  border: 3px solid rgba(250,204,21,0.5);
+  color: #fde047;
+  font-size: 36px;
+  font-weight: 700;
+  padding: 14px 50px;
+  border-radius: 40px;
+  letter-spacing: 3px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="cell main-cell">
+    <div class="icon-wrap">🏌️</div>
+    <div class="title">スイング解析</div>
+    <div class="subtitle">動画を送るだけでAIが診断</div>
+    <div class="cta">▶ タップして開始</div>
+  </div>
+  <div class="cell">
+    <div class="icon-wrap">📖</div>
+    <div class="title">使い方</div>
+    <div class="subtitle">はじめての方へ</div>
+  </div>
+  <div class="cell">
+    <div class="icon-wrap">💬</div>
+    <div class="title">問い合わせ</div>
+    <div class="subtitle">お気軽にどうぞ</div>
+  </div>
+</div>
+</body>
+</html>
