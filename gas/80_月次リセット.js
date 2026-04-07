@@ -43,6 +43,13 @@ function 月次リセット実行_() {
         continue;
       }
 
+      // 無料ユーザーはリセットしない（生涯1回のため）
+      const planType = userDoc?.document?.fields?.planType?.stringValue || "free";
+      if (planType === "free") {
+        スキップ数++;
+        continue;
+      }
+
       const 既存月キー = userDoc?.document?.fields?.monthlyKey?.stringValue || "";
       if (既存月キー === 月キー) {
         // 今月既にリセット済み（または当月初回）
@@ -50,7 +57,7 @@ function 月次リセット実行_() {
         continue;
       }
 
-      // monthlyVideoUsed を 0 にリセット、monthlyKey を今月に更新
+      // monthlyVideoUsed を 0 にリセット、monthlyKey を今月に更新（有料ユーザーのみ）
       ユーザー状態更新_FS_(lineUserId, {
         monthlyKey: 月キー,
         monthlyVideoUsed: 0,

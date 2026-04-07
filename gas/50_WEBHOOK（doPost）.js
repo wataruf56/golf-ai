@@ -121,7 +121,7 @@ function doPost(e) {
           try {
             const checkoutUrl = Stripe_Checkout_URL作成_(userId);
             if (replyToken) LINE返信送信_(replyToken,
-              "⛳ 有料プラン（月額1,000円・月10回解析）\n\n"
+              "⛳ 有料プラン（月額480円・月10回解析）\n\n"
               + "以下のリンクからお申し込みください👇\n"
               + checkoutUrl
             );
@@ -142,7 +142,7 @@ function doPost(e) {
           const remaining = Math.max(0, limit - used);
           const planLabel = plan === プラン種別_paid
             ? "🌟 有料プラン（月10回）"
-            : "🆓 無料プラン（月1回）";
+            : "🆓 無料トライアル（1回限り）";
           const upgradeMsg = plan === プラン種別_free
             ? "\n\n📈 アップグレードは「#プラン」と送ってください"
             : "";
@@ -173,7 +173,7 @@ function doPost(e) {
           const plan = 状態.planType || プラン種別_free;
           const planInfo = plan === プラン種別_paid
             ? "🌟 有料プラン加入中"
-            : "🆓 無料プラン（月1回）";
+            : "🆓 無料トライアル（1回限り）";
           if (replyToken) LINE返信送信_(replyToken,
             "📖 使い方ガイド\n\n"
             + "【動画解析】\n"
@@ -454,7 +454,7 @@ function doPost(e) {
         if (月上限 === Paid_月上限) {
           limitMsg = "今月の解析回数（10本）を使い切りました。";
         } else if (月上限 === Free_月上限) {
-          limitMsg = "無料プランは月1本までです。";
+          limitMsg = "無料トライアルの解析枠を使い切りました。\n\n📈 有料プランは「#プラン」と送ってください（月額480円・月10回）";
         }
 
         LINEプッシュ送信実行_(userId, limitMsg);
@@ -732,7 +732,7 @@ function 動画解析_残り回数チェック_(状態) {
     if (月上限 === Paid_月上限) {
       message = "今月の解析回数（10本）を使い切りました。\n\n来月1日にリセットされます。";
     } else {
-      message = "無料プランは月1本までです。\n\n📈 もっと解析したい方は有料プランへ！\n「#プラン」と送ってください（月額1,000円・月10回）";
+      message = "無料トライアルの解析枠を使い切りました。\n\n📈 もっと解析したい方は有料プランへ！\n「#プラン」と送ってください（月額480円・月10回）";
     }
     return { ok: false, message };
   }

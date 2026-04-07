@@ -100,7 +100,7 @@ const プラン種別_free = "free";
 const プラン種別_paid = "paid";
 const プラン種別_チケット = "チケット";
 
-const Free_月上限 = 1;  // free: 月1回
+const Free_月上限 = 1;  // free: 生涯1回（月次リセット対象外）
 const Paid_月上限 = 10; // paid: 月10回
 
 const 課金消化状態_未消化 = "未消化"; // pending相当
