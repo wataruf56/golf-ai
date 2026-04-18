@@ -103,22 +103,10 @@ function doPost(e) {
             const limit = 状態.monthlyVideoLimit || Paid_月上限;
             const used = 状態.monthlyVideoUsed || 0;
             const remaining = Math.max(0, limit - used);
-            try {
-              const portalUrl = Stripe_CustomerPortalSession作成_(userId);
-              if (replyToken) LINE返信送信_(replyToken,
-                "🌟 すでに有料プランにご加入中です。\n\n"
-                + `今月の残り解析回数：${remaining}回（${used}/${limit}回使用済み）\n\n`
-                + "解約・カード変更はこちら👇\n"
-                + portalUrl
-              );
-            } catch (e) {
-              Webhookログ出力_("doPost", "カスタマーポータル取得失敗", { error: e.message });
-              if (replyToken) LINE返信送信_(replyToken,
-                "🌟 すでに有料プランにご加入中です。\n\n"
-                + `今月の残り解析回数：${remaining}回（${used}/${limit}回使用済み）\n\n`
-                + "解約・変更はStripeのマイページからお願いします。"
-              );
-            }
+            if (replyToken) LINE返信送信_(replyToken,
+              "🌟 有料プランご加入中\n\n"
+              + `📊 今月の残り解析回数：${remaining}回（${used}/${limit}回使用済み）`
+            );
             continue;
           }
           try {
@@ -1157,11 +1145,12 @@ function MP4再生時間秒数_(bytes) {
       let size = readU32(p);
       const type = readStr4(p + 4);
       let header = 8;
-
-      if (size === 1) { size = readU64(p + 8); header = 16; }
-      else if (size === 0) { size = end - p; }
-
-      if (size < header) break;
+      if (size === 1) {
+        size = readU64(p + 8);
+        header = 16;
+      } else if (size === 0) {
+        size = end - p;
+      }
       if (type === target) return { pos: p, size, header };
       p += size;
     }
@@ -1180,40 +1169,15 @@ function MP4再生時間秒数_(bytes) {
   const mvhdStart = mvhd.pos + mvhd.header;
   const version = u8[mvhdStart];
 
+  let timescale, duration;
   if (version === 0) {
-    const timescale = readU32(mvhdStart + 12);
-    const duration = readU32(mvhdStart + 16);
-    if (!timescale) throw new Error("timescale=0");
-    return duration / timescale;
+    timescale = readU32(mvhdStart + 12);
+    duration = readU32(mvhdStart + 16);
+  } else {
+    timescale = readU32(mvhdStart + 20);
+    duration = readU64(mvhdStart + 24);
   }
-  if (version === 1) {
-    const timescale = readU32(mvhdStart + 20);
-    const duration = readU64(mvhdStart + 24);
-    if (!timescale) throw new Error("timescale=0");
-    return duration / timescale;
-  }
-  throw new Error("mvhd version 未対応: " + version);
-}
 
-/* =========================================================
- * テスト関数：AIコマンド解析_の動作確認
- * GASエディタから直接実行して結果をログで確認できる
- * =======================================================*/
-function test_AIcmd() {
-  var cases = [
-    "#AI_解析",
-    "#AI解析",
-    "#AI_プロ比較",
-    "#AIプロ比較",
-    "#AI_過去比較",
-    "#AI過去比較",
-    "#AI_追加テキストなし",
-    "#AI_追加テキスト質問",
-    "#AI_SELF_NOW",
-  ];
-  cases.forEach(function(input) {
-    var result = AIコマンド解析_(input);
-    Logger.log("input: [" + input + "] => " + JSON.stringify(result));
-  });
+  if (!timescale || timescale === 0) throw new Error("timescale が 0");
+  return duration / timescale;
 }
-
