@@ -331,6 +331,91 @@ function Stripe_CustomerPortalSession作成_(lineUserId) {
 }
 
 /* =========================================================
+ * 解約導線：カスタマーポータルURLをメール送信
+ * =======================================================*/
+
+/**
+ * Stripe Customer のメールアドレスを取得する
+ * @param {string} customerId - Stripe Customer ID (cus_xxx)
+ * @returns {string} メールアドレス（取得できない場合は空文字）
+ */
+function Stripe_Customerメール取得_(customerId) {
+  if (!customerId) return "";
+  try {
+    const customer = Stripe_API_GET_(`customers/${customerId}`);
+    return customer.email || "";
+  } catch (e) {
+    Webhookログ出力_("Stripe", "Customerメール取得失敗", { customerId, error: e.message });
+    return "";
+  }
+}
+
+/**
+ * 解約用メール送信：カスタマーポータルURLをメールで案内
+ * @param {string} lineUserId - LINEユーザーID
+ * @returns {{ ok: boolean, message: string }}
+ */
+function Stripe_解約メール送信_(lineUserId) {
+  // 1. Firestoreからユーザー情報取得
+  const userDoc = ユーザー状態取得_FS_(lineUserId);
+  const planType = FS文字列取得_(userDoc, "planType") || プラン種別_free;
+  const customerId = FS文字列取得_(userDoc, "stripeCustomerId") || "";
+
+  if (planType !== プラン種別_paid || !customerId) {
+    return { ok: false, message: "有料プランに加入していないため、解約手続きは不要です。" };
+  }
+
+  // 2. Stripe Customerからメールアドレス取得
+  const email = Stripe_Customerメール取得_(customerId);
+  if (!email) {
+    return { ok: false, message: "ご登録のメールアドレスが見つかりませんでした。\nお手数ですが、お問い合わせください。" };
+  }
+
+  // 3. カスタマーポータルセッション作成
+  let portalUrl = "";
+  try {
+    portalUrl = Stripe_CustomerPortalSession作成_(lineUserId);
+  } catch (e) {
+    Webhookログ出力_("Stripe", "ポータルURL作成失敗（解約メール）", { error: e.message });
+    return { ok: false, message: "解約ページの準備中にエラーが発生しました。\nしばらく経ってから再度お試しください。" };
+  }
+
+  // 4. メール送信
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: "【ゴルフのあいちゃん】解約手続きのご案内",
+      htmlBody:
+        "<p>いつもゴルフのあいちゃんをご利用いただきありがとうございます。</p>"
+        + "<p>解約をご希望の場合は、以下のリンクからお手続きください。</p>"
+        + '<p style="margin:20px 0;"><a href="' + portalUrl + '" '
+        + 'style="background-color:#4CAF50;color:white;padding:12px 24px;'
+        + 'text-decoration:none;border-radius:6px;font-size:16px;">'
+        + "解約手続きへ進む</a></p>"
+        + "<p>※ このリンクの有効期限は24時間です。</p>"
+        + "<p>ご不明な点がございましたら、LINEからお問い合わせください。</p>"
+        + "<hr>"
+        + "<p style='color:#999;font-size:12px;'>ゴルフのあいちゃん</p>",
+    });
+  } catch (e) {
+    Webhookログ出力_("Stripe", "解約メール送信失敗", { email, error: e.message });
+    return { ok: false, message: "メール送信に失敗しました。\nしばらく経ってから再度お試しください。" };
+  }
+
+  Webhookログ出力_("Stripe", "解約メール送信成功", { lineUserId, email: email.replace(/(.{3}).*(@.*)/, "$1***$2") });
+
+  // メールアドレスをマスクして返す
+  const masked = email.replace(/(.{3}).*(@.*)/, "$1***$2");
+  return {
+    ok: true,
+    message: "📧 解約手続きのご案内メールを送信しました。\n\n"
+      + "送信先：" + masked + "\n\n"
+      + "メール内のリンクから解約手続きを行ってください。\n"
+      + "※ メールが届かない場合は迷惑メールフォルダもご確認ください。",
+  };
+}
+
+/* =========================================================
  * テスト関数
  * =======================================================*/
 

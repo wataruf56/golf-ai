@@ -123,6 +123,24 @@ function doPost(e) {
           continue;
         }
 
+        // ════════════════════════════════════════════════
+        // 解約（メールでカスタマーポータルURLを案内）
+        // ════════════════════════════════════════════════
+        if (text === "#解約" || text === "#CANCEL_PLAN") {
+          if (状態.planType !== プラン種別_paid || !状態.stripeCustomerId) {
+            if (replyToken) LINE返信送信_(replyToken, "現在、有料プランに加入していないため解約手続きは不要です。");
+            continue;
+          }
+          try {
+            const result = Stripe_解約メール送信_(userId);
+            if (replyToken) LINE返信送信_(replyToken, result.message);
+          } catch (e) {
+            Webhookログ出力_("doPost", "解約メール送信エラー", { error: e.message });
+            if (replyToken) LINE返信送信_(replyToken, "解約手続き中にエラーが発生しました。\nしばらく経ってから再度お試しください。");
+          }
+          continue;
+        }
+
         // プラン状態確認
         if (text === "#STATUS" || text === "#ステータス" || text === "#マイページ") {
           const plan = 状態.planType || プラン種別_free;
@@ -262,6 +280,30 @@ function doPost(e) {
                     type: "box", layout: "vertical", paddingAll: "10px",
                     contents: [
                       { type: "button", action: { type: "message", label: "契約はこちら", text: "#プラン" }, style: "primary", color: "#4CAF50" }
+                    ]
+                  }
+                }
+              });
+            }
+
+            // 有料ユーザーのみ：解約動線カードを追加
+            if (isPaid) {
+              helpMessages.push({
+                type: "flex",
+                altText: "解約のご案内",
+                contents: {
+                  type: "bubble", size: "kilo",
+                  body: {
+                    type: "box", layout: "vertical", paddingAll: "15px",
+                    contents: [
+                      { type: "text", text: "📋 解約について", weight: "bold", size: "md", color: "#333333" },
+                      { type: "text", text: "解約をご希望の場合は、\nご登録メールアドレスに\n手続きリンクをお送りします。", size: "sm", wrap: true, color: "#666666", margin: "md" }
+                    ]
+                  },
+                  footer: {
+                    type: "box", layout: "vertical", paddingAll: "10px",
+                    contents: [
+                      { type: "button", action: { type: "message", label: "解約はこちら", text: "#解約" }, style: "secondary" }
                     ]
                   }
                 }
@@ -416,7 +458,7 @@ function doPost(e) {
               continue;
             }
 
-            const newMsgMode = cmd.messageMode === メッセージモード_補足あり ? メッセージモード_質啍 : メッセージモード_なし;
+            const newMsgMode = cmd.messageMode === メッセージモード_補足あり ? メッセージモード_質問 : メッセージモード_なし;
             ユーザー状態更新_FS_(userId, {
               actionMode: cmd.actionMode,
               messageMode: newMsgMode,
