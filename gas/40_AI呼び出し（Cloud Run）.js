@@ -37,24 +37,39 @@ function CloudRun_JSON呼び出し_(URL, シークレット, payloadObj) {
   return { code, text, json };
 }
 
-function 動画解析_Gemini_(gcsUri) {
+/**
+ * 動画解析（Gemini経由、Cloud Run swing-analyzer 呼び出し）
+ * @param {string} gcsUri - 解析対象の動画GCSパス（gs://...）
+ * @param {string} [prompt] - 任意。指定した場合は「動画＋このプロンプト」でGeminiに直接解析させ、結果(answerText)を返す。
+ *                            未指定の場合は従来どおり固定プロンプトで観察メモ(reviewText)を返す。
+ * @returns {string}
+ */
+function 動画解析_Gemini_(gcsUri, prompt) {
   if (!gcsUri) throw new Error("動画解析_Gemini_: gcsUri が空です");
 
   const secret = 解析サービス共有シークレット取得_();
   if (!secret) throw new Error("動画解析_Gemini_: 解析サービス共有シークレットが未設定です（Script Properties）");
 
   const payload = { gcsUri: String(gcsUri) };
+  const hasPrompt = prompt && String(prompt).trim() !== "";
+  if (hasPrompt) payload.prompt = String(prompt);
+
   const res = CloudRun_JSON呼び出し_(解析サービスURL, secret, payload);
 
   if (res.code !== 200) throw new Error("動画解析_Gemini_: Cloud Run エラー code=" + res.code + " body=" + res.text);
 
   const ok = !!res.json?.ok;
-  const reviewText = res.json?.reviewText;
-
   if (!ok) throw new Error("動画解析_Gemini_: ok=false body=" + res.text);
-  if (!reviewText || String(reviewText).trim() === "") throw new Error("動画解析_Gemini_: reviewText が空です body=" + res.text);
 
-  const text = String(reviewText);
+  // promptあり → answerText、なし → reviewText
+  const rawText = hasPrompt ? res.json?.answerText : res.json?.reviewText;
+  const fieldName = hasPrompt ? "answerText" : "reviewText";
+
+  if (!rawText || String(rawText).trim() === "") {
+    throw new Error("動画解析_Gemini_: " + fieldName + " が空です body=" + res.text);
+  }
+
+  const text = String(rawText);
 
   // Geminiが動画を認識できなかった場合のエラーパターン検出
   const エラーパターン = [
@@ -77,6 +92,67 @@ function 動画解析_Gemini_(gcsUri) {
   // 解析結果が極端に短い場合（正常な解析は通常200文字以上）
   if (text.length < 100) {
     throw new Error("動画解析_Gemini_: 解析結果が短すぎます（" + text.length + "文字）: " + text);
+  }
+
+  return text;
+}
+
+/**
+ * 動画2本解析（プロ比較・過去比較用）
+ * 1本目・2本目の動画とユーザープロンプトをまとめて swing-analyzer に渡し、
+ * Geminiが直接2動画を比較した結果(answerText)を返す。
+ * @param {string} gcsUri1 - 1本目の動画GCSパス（プロ動画 or 過去動画）
+ * @param {string} gcsUri2 - 2本目の動画GCSパス（自分動画 or 今回動画）
+ * @param {string} prompt - プロンプト（必須）
+ * @returns {string}
+ */
+function 動画解析_Gemini_2本_(gcsUri1, gcsUri2, prompt) {
+  if (!gcsUri1) throw new Error("動画解析_Gemini_2本_: gcsUri1 が空です");
+  if (!gcsUri2) throw new Error("動画解析_Gemini_2本_: gcsUri2 が空です");
+  if (!prompt || String(prompt).trim() === "") throw new Error("動画解析_Gemini_2本_: prompt が空です");
+
+  const secret = 解析サービス共有シークレット取得_();
+  if (!secret) throw new Error("動画解析_Gemini_2本_: 解析サービス共有シークレットが未設定です（Script Properties）");
+
+  const payload = {
+    gcsUri: String(gcsUri1),
+    gcsUri2: String(gcsUri2),
+    prompt: String(prompt),
+  };
+  const res = CloudRun_JSON呼び出し_(解析サービスURL, secret, payload);
+
+  if (res.code !== 200) throw new Error("動画解析_Gemini_2本_: Cloud Run エラー code=" + res.code + " body=" + res.text);
+
+  const ok = !!res.json?.ok;
+  const answerText = res.json?.answerText;
+
+  if (!ok) throw new Error("動画解析_Gemini_2本_: ok=false body=" + res.text);
+  if (!answerText || String(answerText).trim() === "") {
+    throw new Error("動画解析_Gemini_2本_: answerText が空です body=" + res.text);
+  }
+
+  const text = String(answerText);
+
+  // 動画認識エラーパターン検出
+  const エラーパターン = [
+    "動画が送られてきません",
+    "動画を確認できません",
+    "動画が確認できません",
+    "動画が提供されていません",
+    "映像が確認できません",
+    "動画ファイルが見つかりません",
+    "動画を受け取っていません",
+    "動画がありません",
+    "動画データが含まれていません",
+  ];
+  for (const pat of エラーパターン) {
+    if (text.includes(pat)) {
+      throw new Error("動画解析_Gemini_2本_: Geminiが動画を認識できませんでした（リトライ対象）: " + text.substring(0, 300));
+    }
+  }
+
+  if (text.length < 100) {
+    throw new Error("動画解析_Gemini_2本_: 解析結果が短すぎます（" + text.length + "文字）: " + text);
   }
 
   return text;

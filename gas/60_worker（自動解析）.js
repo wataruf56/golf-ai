@@ -180,23 +180,23 @@ function 解析フェーズ実行_(messageId) {
 
   let reviewText = "";
 
+  // ====================================================================
+  // 【改修】全モード swing-analyzer 1回呼び出しで完結
+  // - 動画 + プロンプトをまとめて Gemini に渡し、整形済み回答を直接受け取る
+  // - text-answer 呼び出しは廃止
+  // ====================================================================
+
   // プロ比較モード（プロ動画 vs 自分動画）
   if (モード === 動作モード_比較) {
     if (!プロGCS) throw new Error("比較：proGcsUri が空です");
     if (!自分GCS) throw new Error("比較：gcsPath（自分動画）が空です");
 
-    const プロ解析 = 動画解析_Gemini_(プロGCS);
-    const 自分解析 = 動画解析_Gemini_(自分GCS);
-
-    let promptText, label;
-    if (v.userMessage) {
-      promptText = プロンプト_比較_テキストあり_(プロ解析, 自分解析, v.userMessage);
-      label = "プロ比較_テキストあり";
-    } else {
-      promptText = プロンプト_比較_(プロ解析, 自分解析, "");
-      label = "プロ比較";
-    }
-    reviewText = テキスト回答_AI_(v.userId, promptText, label, v.id);
+    const promptText = プロンプト_比較_動画直接_(v.userMessage || "");
+    const label = v.userMessage ? "プロ比較_テキストあり_動画直接" : "プロ比較_動画直接";
+    try {
+      AIプロンプトログ出力_(String(v.id || ""), String(v.userId || ""), String(promptText), label);
+    } catch (e) {}
+    reviewText = 動画解析_Gemini_2本_(プロGCS, 自分GCS, promptText);
 
   // 過去比較モード（過去動画 vs 今回動画）
   } else if (モード === 動作モード_過去比較) {
@@ -204,40 +204,37 @@ function 解析フェーズ実行_(messageId) {
     const 過去GCS = v.prevGcsUri;
     if (!過去GCS) throw new Error("過去比較：prevGcsUri（過去動画）が空です");
 
-    const 過去解析 = 動画解析_Gemini_(過去GCS);
-    const 今回解析 = 動画解析_Gemini_(自分GCS);
-
-    let promptText, label;
-    if (v.userMessage) {
-      promptText = プロンプト_過去比較_テキストあり_(過去解析, 今回解析, v.userMessage);
-      label = "過去比較_テキストあり";
-    } else {
-      promptText = プロンプト_過去比較_(過去解析, 今回解析, "");
-      label = "過去比較";
-    }
-    reviewText = テキスト回答_AI_(v.userId, promptText, label, v.id);
+    const promptText = プロンプト_過去比較_動画直接_(v.userMessage || "");
+    const label = v.userMessage ? "過去比較_テキストあり_動画直接" : "過去比較_動画直接";
+    try {
+      AIプロンプトログ出力_(String(v.id || ""), String(v.userId || ""), String(promptText), label);
+    } catch (e) {}
+    reviewText = 動画解析_Gemini_2本_(過去GCS, 自分GCS, promptText);
 
   } else if (モード === 動作モード_質問) {
     if (!自分GCS) throw new Error("質問モード：gcsPath（自分動画）が空です");
 
-    const 基本解析 = 動画解析_Gemini_(自分GCS);
-    const promptText = プロンプト_質問モード_動画あり_(基本解析, v.userMessage);
-    reviewText = テキスト回答_AI_(v.userId, promptText, "質問モード_動画あり", v.id);
+    const promptText = プロンプト_質問モード_動画直接_(v.userMessage || "");
+    try {
+      AIプロンプトログ出力_(String(v.id || ""), String(v.userId || ""), String(promptText), "質問モード_動画直接");
+    } catch (e) {}
+    reviewText = 動画解析_Gemini_(自分GCS, promptText);
 
   } else {
     if (!自分GCS) throw new Error("自分解析：gcsPath（自分動画）が空です");
 
-    const 基本解析 = 動画解析_Gemini_(自分GCS);
-
     let promptText, label;
     if (v.userMessage) {
-      promptText = プロンプト_自分解析_テキストあり_(基本解析, v.userMessage);
-      label = "自分解析_テキストあり";
+      promptText = プロンプト_自分解析_テキストあり_動画直接_(v.userMessage);
+      label = "自分解析_テキストあり_動画直接";
     } else {
-      promptText = プロンプト_自分解析_単体_(基本解析);
-      label = "自分解析";
+      promptText = プロンプト_自分解析_単体_動画直接_();
+      label = "自分解析_動画直接";
     }
-    reviewText = テキスト回答_AI_(v.userId, promptText, label, v.id);
+    try {
+      AIプロンプトログ出力_(String(v.id || ""), String(v.userId || ""), String(promptText), label);
+    } catch (e) {}
+    reviewText = 動画解析_Gemini_(自分GCS, promptText);
   }
 
   if (!reviewText || String(reviewText).trim() === "") throw new Error("reviewText が空です");
@@ -269,36 +266,26 @@ function 解析フェーズ_テストモード実行_(v) {
   const モード = v.actionModeSnapshot || "";
   const メッセージモード = v.messageModeSnapshot || "";
 
-  const ダミー解析 = "[テスト用] 動画解析はスキップのためダミーです。";
-  const ダミー前回 = "[テスト用] 前回データはダミーです。";
-
-  let label = "自分解析";
-  let promptText = プロンプト_自分解析_単体_(ダミー解析);
+  // 【改修】動画直接版プロンプトを使用（解析テキスト中間表現は廃止）
+  let label = "自分解析_動画直接";
+  let promptText = プロンプト_自分解析_単体_動画直接_();
 
   if (モード === 動作モード_比較) {
-    if (v.userMessage) {
-      label = "プロ比較_テキストあり"; promptText = プロンプト_比較_テキストあり_(ダミー解析, ダミー解析, v.userMessage);
-    } else {
-      label = "プロ比較";
-      promptText = プロンプト_比較_(ダミー解析, ダミー解析, "");
-    }
+    label = v.userMessage ? "プロ比較_テキストあり_動画直接" : "プロ比較_動画直接";
+    promptText = プロンプト_比較_動画直接_(v.userMessage || "");
   } else if (モード === 動作モード_過去比較) {
-    if (v.userMessage) {
-      label = "過去比較_テキストあり"; promptText = プロンプト_過去比較_テキストあり_(ダミー解析, ダミー解析, v.userMessage);
-    } else {
-      label = "過去比較";
-      promptText = プロンプト_過去比較_(ダミー解析, ダミー解析, "");
-    }
+    label = v.userMessage ? "過去比較_テキストあり_動画直接" : "過去比較_動画直接";
+    promptText = プロンプト_過去比較_動画直接_(v.userMessage || "");
+  } else if (モード === 動作モード_質問) {
+    label = "質問モード_動画直接";
+    promptText = プロンプト_質問モード_動画直接_(v.userMessage || "");
   } else if (v.userMessage) {
-    label = "自分解析_テキストあり";
-    promptText = プロンプト_自分解析_テキストあり_(ダミー解析, v.userMessage);
+    label = "自分解析_テキストあり_動画直接";
+    promptText = プロンプト_自分解析_テキストあり_動画直接_(v.userMessage);
   } else {
-    label = "自分解析";
-    promptText = プロンプト_自分解析_単体_(ダミー解析);
+    label = "自分解析_動画直接";
+    promptText = プロンプト_自分解析_単体_動画直接_();
   }
-
-  // AIプロンプトログには解析結果のダミー本文を載せない（「【解析結果】＋ダミー」を除く）
-  promptText = promptText.replace(/【解析結果】\n\[テスト用\] 動画解析はスキップのためダミーです。\n*/g, "");
 
   try {
     AIプロンプトログ出力_(v.id, v.userId || "", promptText, label, true);

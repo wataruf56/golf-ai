@@ -531,46 +531,15 @@ function doPost(e) {
           continue;
         }
 
-        // 自由質問：直前のレビュー（＋P観察＋直近Q&A＋データセット候補）
-        const 対象 = 自由質問_対象動画取得_詳細_(userId, 状態.currentVideoMessageId);
-        if (!対象) {
-          Webhookログ出力_("自由質問", "対象動画なし", { userId });
-          continue;
-        }
-
-        const 設定 = レベル設定取得_(状態.userLevel);
-        const 事例候補 = データセット_直近項目取得_FS_(Math.max(10, 設定.事例数 * 3));
-
-        const prompt = 自由質問_最適化プロンプト生成_({
-          userLevel: 状態.userLevel,
-          settings: 設定,
-          reviewText: 対象.reviewText,
-          coachCheckText: 対象.coachCheckText,
-          recentQA: 対象.recentQA,
-          questionText: text,
-          datasetDocs: 事例候補,
-        });
-
-        try {
-          const answer = テキスト回答_AI_(userId, prompt, "自由質問", "");
-          const out = 行数制限_整形_(answer, 設定.最大行数);
-          LINEプッシュ送信実行_(userId, out);
-
-          try {
-            const r = 自由質問_履歴追記_(対象.messageId, text, out);
-            Webhookログ出力_("自由質問", "freeQuestions 保存完了", { messageId: 対象.messageId, r });
-          } catch (e) {
-            Webhookログ出力_("自由質問", "freeQuestions 保存失敗", { messageId: 対象.messageId, err: String(e) });
-          }
-
-          try {
-            データセット項目_自由質問シグナル加算_(対象.messageId);
-          } catch (e) {}
-
-        } catch (aiErr) {
-          Webhookログ出力_("自由質問", "AI失敗", { err: String(aiErr) });
-        }
-
+        // ════════════════════════════════════════════════
+        // 【改修】自由質問（動画なしテキスト質問）は廃止
+        // pendingStep外のテキストには誘導メッセージを返す
+        // ════════════════════════════════════════════════
+        LINEプッシュ送信実行_(userId,
+          "動画を送ってスイング解析をしてみましょう！\n" +
+          "下のメニューから「解析」をタップしてください。"
+        );
+        Webhookログ出力_("doPost", "自由質問は廃止。誘導メッセージを送信", { userId, text });
         continue;
       }
 

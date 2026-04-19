@@ -1,0 +1,8 @@
+{
+  "name": "gcs-signer",
+  "type": "module",
+  "dependencies": {
+    "@google-cloud/storage": "^7.14.0",
+    "express": "^4.19.2"
+  }
+}
