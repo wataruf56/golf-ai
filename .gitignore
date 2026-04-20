@@ -9,3 +9,10 @@ shikumiya-site/
 .vscode/
 .wrangler/
 .claude/
+
+# 機密情報（絶対にcommitしない）
+staging-credentials.txt
+*-credentials.txt
+*.secret
+.env
+.env.*
