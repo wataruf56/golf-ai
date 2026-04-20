@@ -12,6 +12,71 @@ function createStagingLogSheet() {
   Logger.log("URL: " + ss.getUrl());
 }
 
+/**
+ * ★★★ この関数を1回だけ実行してください ★★★
+ * 目的:
+ *   1) 追加した OAuth スコープ（外部URL/GCS/Sheets/Firestore）を承認
+ *   2) ステージング用 Script Properties を一括設定
+ *   3) 疎通確認（LINE info, Firestore, Spreadsheet）
+ *
+ * 使い方:
+ *   - 関数プルダウンで「ステージング初期化_実行」を選ぶ
+ *   - 「実行」→ Google承認ダイアログで許可
+ *   - 実行ログを確認（エラーがあれば末尾に表示される）
+ */
+function ステージング初期化_実行() {
+  const sp = PropertiesService.getScriptProperties();
+
+  // 1) Script Properties を設定（本番と同じ値を使うべきものは手動で別途上書き）
+  const props = {
+    DATASET_SALT: "staging-salt-2026",
+    TEST_MODE: "false",
+    // 注: 以下は本番と共通でよいもの。既に設定されていれば上書きしない。
+    // CLOUDRUN_ANALYZE_SHARED_SECRET: "<本番から手動コピー>",
+    // CLOUDRUN_TEXT_SHARED_SECRET:   "<本番から手動コピー>",
+  };
+  const current = sp.getProperties();
+  const set = {};
+  Object.keys(props).forEach(k => {
+    if (!current[k]) { sp.setProperty(k, props[k]); set[k] = props[k]; }
+  });
+  Logger.log("Script Properties設定: " + JSON.stringify(set));
+  Logger.log("既存値を保護（上書きしていない）: " + JSON.stringify(
+    Object.keys(props).filter(k => current[k]).reduce((a, k) => (a[k] = "***既存***", a), {})
+  ));
+
+  // 2) OAuth 承認トリガー：各スコープを1回ずつ使う
+  try {
+    const token = sp.getProperty("LINE_CHANNEL_ACCESS_TOKEN");
+    if (!token) throw new Error("LINE_CHANNEL_ACCESS_TOKEN が未設定です");
+    const res = UrlFetchApp.fetch("https://api.line.me/v2/bot/info", {
+      headers: { "Authorization": "Bearer " + token },
+      muteHttpExceptions: true,
+    });
+    Logger.log("LINE疎通OK: " + res.getContentText().slice(0, 200));
+  } catch (e) {
+    Logger.log("LINE疎通エラー: " + e);
+  }
+
+  // 3) Spreadsheet スコープ（ログ書き込みで使う）
+  try {
+    if (WEBHOOKログ_スプレッドシートID) {
+      const ss = SpreadsheetApp.openById(WEBHOOKログ_スプレッドシートID);
+      Logger.log("Spreadsheet疎通OK: " + ss.getName());
+    } else {
+      Logger.log("WEBHOOKログ_スプレッドシートID が空です（00_設定.jsで設定してください）");
+    }
+  } catch (e) {
+    Logger.log("Spreadsheetエラー: " + e);
+  }
+
+  // 4) Datastore スコープ（Firestore APIで使うだけでは OAuth dispatch されないため
+  //    ここでは触れない。初回の doPost 実行時に自動承認される想定）
+
+  Logger.log("=== 初期化完了 ===");
+  Logger.log("次: LINEアプリで「ゴルフのあいちゃん（テスト）」に「使い方」と送って動作確認してください。");
+}
+
 function TEST_LINEプッシュ() {
   const userId = "U41f8e33f0633a54365d38c8bc2b69517";
   LINEプッシュ送信実行_(userId, "TEST: Script Properties 経由で送信できました");
