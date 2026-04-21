@@ -106,8 +106,9 @@ const プラン種別_free = "free";
 const プラン種別_paid = "paid";
 const プラン種別_チケット = "チケット";
 
-const Free_月上限 = 1;  // free: 生涯1回（月次リセット対象外）
-const Paid_月上限 = 10; // paid: 月10回
+// 【ステージング】テスト用のため実質無制限（本番は free=1/paid=10）
+const Free_月上限 = 1000;
+const Paid_月上限 = 1000;
 
 /* クーポン */
 const PROP_クーポンコード = "COUPON_CODE";  // Script Properties キー名
