@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ゴルフのあいちゃん｜LINEで動画を送るだけ、AIがスイングを添削</title>
-<meta name="description" content="ゴルフのあいちゃんは、LINEに動画を送るとAIがあなたのスイングを7フェーズで添削してくれるサービス。月額480円・月10回。">
-<meta property="og:title" content="ゴルフのあいちゃん｜LINEで動画を送るだけ、AIがスイングを添削">
-<meta property="og:description" content="LINEに動画を送るとAIが7フェーズでスイングを添削。月額480円のマイクロコーチ。">
+<meta name="description" content="LINEに動画を送るだけ。AIがあなたのスイングを7フェーズで添削。月額480円のマイクロコーチ。">
+<meta property="og:title" content="ゴルフのあいちゃん｜AIがスイングを添削">
+<meta property="og:description" content="LINEに動画を送るだけ。AIが7フェーズで添削。月額480円。">
 <meta property="og:image" content="https://golf.shikumi-ya.com/demo_preview.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://golf.shikumi-ya.com/">
@@ -14,235 +14,399 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Zen+Maru+Gothic:wght@700;900&family=Caveat:wght@700&display=swap" rel="stylesheet">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   :root{
-    --bg:#f7f5ef;--ink:#1d2a24;--green:#2f7a52;--green-deep:#0d3520;
-    --line:#06c755;--gray:#6b6b6b;--border:#e3ddd1;
+    --ink:#0e1812;--bg:#0a0f0c;--card:#fff;
+    --green:#3ec07a;--green-deep:#0f4a2e;
+    --line:#06c755;--accent:#ffce4d;--pink:#ff7aa2;
+    --gray:#a8a8a8;
   }
   html{scroll-behavior:smooth}
   body{
-    font-family:'Noto Sans JP',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;
-    background:var(--bg);color:var(--ink);line-height:1.75;font-size:15px;
+    font-family:'Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--bg);color:#fff;line-height:1.7;font-size:15px;
+    overflow-x:hidden;
   }
-  h1,h2,h3{font-family:'Zen Maru Gothic','Noto Sans JP',sans-serif;line-height:1.4;letter-spacing:.02em}
-  a{color:inherit}
+  h1,h2,h3{font-family:'Zen Maru Gothic','Noto Sans JP',sans-serif;line-height:1.2;letter-spacing:-.01em}
+  .hand{font-family:'Caveat',cursive;font-weight:700}
+  a{color:inherit;text-decoration:none}
   img,video{display:block;max-width:100%;height:auto}
-  .wrap{max-width:680px;margin:0 auto;padding:0 20px;position:relative;z-index:2}
+  .wrap{max-width:520px;margin:0 auto;padding:0 18px;position:relative}
 
+  /* スティッキーヘッダー（最小限・ストーリー風） */
   header{
-    padding:14px 0;background:rgba(247,245,239,.92);backdrop-filter:saturate(140%) blur(8px);
-    border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+    position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:100;
+    width:calc(100% - 24px);max-width:496px;
+    background:rgba(20,28,22,.7);backdrop-filter:blur(16px) saturate(160%);
+    border:1px solid rgba(255,255,255,.1);border-radius:999px;
+    padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;
   }
-  .head-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
-  .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-  .brand img{width:32px;height:32px}
-  .brand span{font-family:'Zen Maru Gothic';font-weight:700;font-size:15px}
-  .head-cta{background:var(--line);color:#fff;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap}
+  .brand{display:flex;align-items:center;gap:8px}
+  .brand img{width:28px;height:28px;border-radius:50%}
+  .brand span{font-family:'Zen Maru Gothic';font-weight:900;font-size:13px;color:#fff}
+  .head-cta{background:var(--line);color:#fff;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
 
-  /* ヒーロー：実写ゴルフ場をフルブリード背景に */
+  /* ヒーロー：フルスクリーン縦長・ストーリー風 */
   .hero{
-    position:relative;color:#fff;padding:90px 0 70px;overflow:hidden;
+    min-height:100vh;display:flex;align-items:flex-end;
+    padding:120px 0 50px;position:relative;overflow:hidden;
     background:
-      linear-gradient(180deg,rgba(13,53,32,.6) 0%,rgba(13,53,32,.85) 100%),
-      url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=1600&q=80') center/cover no-repeat;
+      linear-gradient(180deg,rgba(0,0,0,.1) 0%,rgba(0,0,0,.4) 50%,rgba(10,15,12,.95) 100%),
+      url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=1200&q=85') center/cover no-repeat;
   }
-  .hero::after{
+  .hero::before{
     content:'';position:absolute;inset:0;
-    background:radial-gradient(circle at 70% 20%,rgba(255,228,138,.12),transparent 60%);
-    pointer-events:none;
-  }
-  .hero .badge{display:inline-block;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.18);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.3);font-size:12px;color:#fff;font-weight:700;margin-bottom:16px}
-  .hero h1{font-size:clamp(28px,7vw,38px);font-weight:900;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.3)}
-  .hero h1 .hl{background:linear-gradient(transparent 60%,rgba(255,228,138,.5) 60%);padding:0 .15em}
-  .hero p.lead{margin-top:14px;color:#e8f3ec;line-height:1.9}
-  .hero-meta{margin-top:14px;font-size:12.5px;color:#cce8d9;display:flex;flex-wrap:wrap;gap:6px 14px}
-  .hero-meta b{color:#fff;font-weight:700}
-  .cta-row{margin-top:24px;display:flex;flex-wrap:wrap;gap:10px}
-  .cta{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14.5px;transition:transform .15s,box-shadow .15s}
-  .cta-line{background:var(--line);color:#fff;box-shadow:0 6px 20px rgba(6,199,85,.4)}
-  .cta-line:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(6,199,85,.5)}
-  .cta-ghost{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(4px)}
-  .hero-img{margin-top:30px;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.4);border:3px solid rgba(255,255,255,.2)}
-  .hero-img video{width:100%;display:block;background:#000}
-
-  section{padding:50px 0;position:relative}
-  .eyebrow{font-size:11px;letter-spacing:.18em;color:var(--green);font-weight:700;text-transform:uppercase;margin-bottom:8px}
-  h2.title{font-size:clamp(22px,4.8vw,28px);font-weight:900;margin-bottom:18px}
-  h2.title .hl{background:linear-gradient(transparent 60%,#ffe48a 60%);padding:0 .15em}
-
-  /* 写真ストリップ：実写ゴルフ場を3枚並べる */
-  .photo-strip{
-    display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:6px;
-    margin:0 -20px;padding:0 20px;height:140px;overflow:hidden;
-  }
-  .photo-strip div{background-size:cover;background-position:center;border-radius:8px}
-
-  /* 3ステップ */
-  .steps{display:grid;gap:12px}
-  .step{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 4px 14px rgba(0,0,0,.04)}
-  .step-num{flex:0 0 36px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-deep));color:#fff;display:grid;place-items:center;font-weight:900;font-family:'Zen Maru Gothic';font-size:16px}
-  .step h3{font-size:15px;margin-bottom:4px}
-  .step p{font-size:13px;color:#4a5550;line-height:1.75}
-
-  /* 添削例セクション：背景に薄くゴルファー画像 */
-  .review-sec{
-    color:#fff;
     background:
-      linear-gradient(180deg,rgba(13,53,32,.92),rgba(13,53,32,.96)),
-      url('https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=1600&q=80') center/cover no-repeat fixed;
-    margin:30px 0;padding:50px 0;border-radius:0;
+      radial-gradient(circle at 20% 30%,rgba(255,206,77,.18) 0%,transparent 40%),
+      radial-gradient(circle at 80% 70%,rgba(255,122,162,.14) 0%,transparent 50%);
   }
-  .review-sec .eyebrow{color:#ffe48a}
-  .review-sec h2.title{color:#fff}
-  .review-sec p.sub{color:#cce8d9;line-height:1.95;margin-bottom:22px}
-  .review-card{
-    background:rgba(255,255,255,.97);color:var(--ink);
-    border-radius:16px;padding:22px;font-size:14px;line-height:1.95;
-    box-shadow:0 14px 40px rgba(0,0,0,.4);
+  .hero-stamp{
+    position:absolute;top:18%;right:8%;
+    background:var(--accent);color:#0e1812;
+    font-family:'Caveat';font-weight:700;font-size:24px;
+    padding:8px 18px;border-radius:999px;
+    transform:rotate(8deg);
+    box-shadow:0 8px 24px rgba(255,206,77,.4);
   }
-  .review-card .from{font-size:11px;color:var(--gray);margin-bottom:10px;letter-spacing:.05em}
-  .review-card .divline{border-top:1px dashed #d8cfb8;margin:14px 0}
-  .review-card .em{background:#fff5e0;padding:0 .2em}
-  .review-card b{color:var(--green-deep)}
+  .hero h1{
+    font-size:clamp(34px,9vw,52px);font-weight:900;color:#fff;
+    text-shadow:0 4px 20px rgba(0,0,0,.5);
+  }
+  .hero h1 em{
+    font-style:normal;background:linear-gradient(120deg,var(--accent),var(--pink));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero .tag{
+    display:inline-block;background:rgba(255,255,255,.15);
+    backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);
+    padding:6px 14px;border-radius:999px;
+    font-size:12px;font-weight:700;letter-spacing:.05em;margin-bottom:18px;
+  }
+  .hero .lead{
+    margin-top:14px;color:#e8f3ec;font-size:15px;line-height:1.85;
+    text-shadow:0 2px 8px rgba(0,0,0,.4);
+  }
+  .hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .hero .meta span{
+    background:rgba(255,255,255,.1);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.15);
+    padding:5px 11px;border-radius:999px;font-size:11.5px;color:#fff;
+  }
+  .cta-row{margin-top:24px;display:flex;flex-direction:column;gap:10px}
+  .cta{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:16px 22px;border-radius:18px;font-weight:900;font-size:15px;
+    transition:transform .15s;
+  }
+  .cta-line{
+    background:var(--line);color:#fff;
+    box-shadow:0 8px 24px rgba(6,199,85,.5),inset 0 1px 0 rgba(255,255,255,.3);
+  }
+  .cta-line:hover{transform:translateY(-2px)}
+  .cta-ghost{
+    background:rgba(255,255,255,.1);color:#fff;
+    border:1.5px solid rgba(255,255,255,.3);backdrop-filter:blur(8px);
+  }
+  .scroll-hint{
+    position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+    color:rgba(255,255,255,.6);font-size:11px;letter-spacing:.2em;
+    animation:bounce 2s infinite;
+  }
+  @keyframes bounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
 
-  /* 料金 */
-  .pricing{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .plan{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,.04)}
-  .plan.paid{background:linear-gradient(160deg,#fff8f0,#ffeed5);border-color:#f1d4a4}
-  .plan h3{font-size:15px;margin-bottom:4px}
-  .plan .price{font-family:'Zen Maru Gothic';font-size:26px;font-weight:900;margin:6px 0}
-  .plan .price small{font-size:11px;font-weight:500;color:var(--gray)}
-  .plan ul{list-style:none;font-size:12.5px;color:#3a4a42;margin-top:8px}
-  .plan li{padding:3px 0 3px 16px;position:relative}
-  .plan li::before{content:'';position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:var(--green)}
+  /* ストーリー風カードカルーセル（横スクロール） */
+  .stories{padding:44px 0 30px}
+  .stories-eyebrow{
+    text-align:center;font-family:'Caveat';font-size:22px;
+    color:var(--accent);margin-bottom:8px;
+  }
+  .stories-title{
+    text-align:center;font-size:24px;font-weight:900;color:#fff;
+    margin-bottom:22px;
+  }
+  .stories-scroll{
+    display:flex;gap:12px;overflow-x:auto;padding:0 18px 8px;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .stories-scroll::-webkit-scrollbar{display:none}
+  .story{
+    flex:0 0 220px;height:340px;border-radius:22px;overflow:hidden;
+    position:relative;scroll-snap-align:center;
+    box-shadow:0 12px 32px rgba(0,0,0,.4);
+    color:#fff;text-decoration:none;
+  }
+  .story::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(0,0,0,.1) 30%,rgba(0,0,0,.85) 100%);
+  }
+  .story-img{position:absolute;inset:0;background-size:cover;background-position:center}
+  .story-content{position:absolute;left:18px;right:18px;bottom:18px;z-index:2}
+  .story-num{
+    display:inline-block;font-family:'Caveat';font-size:18px;
+    color:var(--accent);margin-bottom:6px;
+  }
+  .story-title{font-size:20px;font-weight:900;line-height:1.3;margin-bottom:6px}
+  .story-desc{font-size:12px;color:#e8f3ec;line-height:1.6}
+  .story-tag{
+    position:absolute;top:14px;left:14px;z-index:2;
+    background:rgba(255,255,255,.92);color:#0e1812;
+    padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;
+  }
+
+  /* デモ動画セクション：スマホ風枠 */
+  .demo-sec{padding:60px 0;text-align:center;background:linear-gradient(180deg,var(--bg) 0%,#0d2014 100%)}
+  .demo-tag{font-family:'Caveat';font-size:24px;color:var(--accent);margin-bottom:6px}
+  .demo-sec h2{font-size:28px;font-weight:900;color:#fff;margin-bottom:8px;line-height:1.3}
+  .demo-sec p{color:#a8b8b0;font-size:13.5px;margin-bottom:24px;padding:0 18px}
+  .phone-frame{
+    margin:0 auto;width:280px;border-radius:36px;overflow:hidden;
+    border:6px solid #1c2a22;box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05);
+    transform:rotate(-2deg);transition:transform .4s;
+  }
+  .phone-frame:hover{transform:rotate(0deg) scale(1.02)}
+  .phone-frame video{display:block;width:100%}
+
+  /* チャット風サンプル */
+  .chat-sec{
+    padding:60px 0;
+    background:linear-gradient(180deg,#0d2014 0%,#0a1f12 100%);
+  }
+  .chat-tag{font-family:'Caveat';font-size:22px;color:var(--accent);text-align:center;margin-bottom:6px}
+  .chat-title{text-align:center;font-size:26px;font-weight:900;color:#fff;margin-bottom:24px;padding:0 20px}
+  .chat-bubble{
+    max-width:88%;background:#fff;color:#0e1812;
+    border-radius:18px 18px 18px 4px;padding:16px 18px;
+    margin:0 auto 14px;font-size:14px;line-height:1.85;
+    box-shadow:0 12px 30px rgba(0,0,0,.3);
+  }
+  .chat-bubble.from-user{
+    background:#a8e6c9;border-radius:18px 18px 4px 18px;
+    margin-right:18px;margin-left:auto;font-size:13.5px;
+  }
+  .chat-bubble b{color:var(--green-deep)}
+  .chat-bubble .em{background:#fff5e0;padding:0 .2em;font-weight:700}
+  .chat-line{border-top:1px dashed #d8cfb8;margin:12px -18px;padding-top:12px}
+  .chat-from{font-size:11px;color:#888;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .chat-from::before{content:'⛳';}
+
+  /* 料金（ステッカー風） */
+  .price-sec{padding:60px 0;background:#0a1f12}
+  .price-sec h2{text-align:center;font-size:28px;font-weight:900;color:#fff;margin-bottom:6px}
+  .price-sec .price-eyebrow{font-family:'Caveat';font-size:22px;color:var(--accent);text-align:center;margin-bottom:6px}
+  .price-sec p.center{text-align:center;color:#a8b8b0;margin-bottom:24px;font-size:13.5px;padding:0 20px}
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .plan{
+    background:#fff;color:#0e1812;border-radius:22px;padding:22px 18px;
+    box-shadow:0 12px 30px rgba(0,0,0,.4);position:relative;
+  }
+  .plan.paid{
+    background:linear-gradient(160deg,#fff8e0,#ffd980);
+    transform:rotate(2deg);
+  }
+  .plan.free{transform:rotate(-2deg)}
+  .plan-stamp{
+    position:absolute;top:-12px;right:-8px;
+    background:var(--pink);color:#fff;
+    font-family:'Caveat';font-size:18px;padding:4px 12px;
+    border-radius:999px;transform:rotate(8deg);
+    box-shadow:0 6px 14px rgba(255,122,162,.4);
+  }
+  .plan h3{font-size:16px;font-weight:900;margin-bottom:4px}
+  .plan .price{font-family:'Zen Maru Gothic';font-size:32px;font-weight:900;margin:6px 0}
+  .plan .price small{font-size:12px;font-weight:500;color:#666}
+  .plan ul{list-style:none;font-size:12.5px;color:#3a3a3a;margin-top:10px}
+  .plan li{padding:3px 0 3px 18px;position:relative}
+  .plan li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:900}
 
   /* FAQ */
-  .qa{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
-  .qa summary{cursor:pointer;padding:16px 18px;font-weight:700;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
-  .qa summary::after{content:'+';color:var(--green);font-size:20px;font-weight:300;flex-shrink:0}
-  .qa[open] summary::after{content:'−'}
-  .qa[open] summary{border-bottom:1px solid var(--border)}
-  .qa-body{padding:14px 18px 16px;font-size:13px;color:#4a5550;line-height:1.85}
-
-  /* CTAバナー：実写背景 */
-  .banner{
-    color:#fff;border-radius:20px;padding:46px 24px;text-align:center;
-    background:
-      linear-gradient(135deg,rgba(31,82,54,.85),rgba(13,53,32,.9)),
-      url('https://images.unsplash.com/photo-1593111774240-d529f12cf4bb?w=1600&q=80') center/cover no-repeat;
-    box-shadow:0 14px 40px rgba(0,0,0,.15);
+  .faq-sec{padding:60px 0;background:#0a0f0c}
+  .faq-sec h2{text-align:center;font-size:26px;font-weight:900;color:#fff;margin-bottom:24px}
+  .faq-eyebrow{font-family:'Caveat';font-size:22px;color:var(--accent);text-align:center;margin-bottom:6px}
+  .qa{
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+    border-radius:14px;margin-bottom:8px;color:#fff;
   }
-  .banner h2{color:#fff;font-size:22px;margin-bottom:8px;text-shadow:0 2px 12px rgba(0,0,0,.3)}
-  .banner p{color:#e8f3ec;margin-bottom:20px;font-size:14px;line-height:1.85}
+  .qa summary{
+    cursor:pointer;padding:16px 18px;font-weight:700;font-size:14px;
+    list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;
+  }
+  .qa summary::after{content:'+';color:var(--accent);font-size:22px;font-weight:300;flex-shrink:0;transition:transform .2s}
+  .qa[open] summary::after{transform:rotate(45deg)}
+  .qa[open] summary{border-bottom:1px solid rgba(255,255,255,.1)}
+  .qa-body{padding:14px 18px 16px;font-size:13px;color:#c8d2cc;line-height:1.85}
 
-  footer{padding:30px 0 50px;text-align:center;color:var(--gray);font-size:12px}
+  /* CTAバナー */
+  .cta-sec{padding:60px 0 30px}
+  .cta-banner{
+    color:#fff;border-radius:32px;padding:50px 24px;text-align:center;
+    background:
+      linear-gradient(135deg,rgba(31,82,54,.85),rgba(13,53,32,.92)),
+      url('https://images.unsplash.com/photo-1593111774240-d529f12cf4bb?w=1200&q=80') center/cover no-repeat;
+    box-shadow:0 20px 50px rgba(0,0,0,.5);position:relative;overflow:hidden;
+  }
+  .cta-banner::before{
+    content:'⛳';position:absolute;font-size:200px;opacity:.07;
+    top:-30px;right:-30px;transform:rotate(-15deg);
+  }
+  .cta-banner .label{font-family:'Caveat';font-size:24px;color:var(--accent);margin-bottom:6px}
+  .cta-banner h2{color:#fff;font-size:26px;font-weight:900;margin-bottom:10px;line-height:1.3}
+  .cta-banner p{color:#cce8d9;margin-bottom:22px;font-size:14px}
+
+  footer{padding:30px 0 50px;text-align:center;color:var(--gray);font-size:11.5px}
   footer a{color:var(--gray);margin:0 6px;text-decoration:underline}
-  footer .small{margin-top:10px;font-size:11px;color:#a8a8a8}
+  footer .small{margin-top:10px;font-size:10.5px;color:#666}
 
-  @media (max-width:520px){
-    .pricing{grid-template-columns:1fr}
-    .photo-strip{height:100px;grid-template-columns:1.2fr 1fr}
-    .photo-strip div:nth-child(3){display:none}
-    .review-sec{background-attachment:scroll}
-    section{padding:40px 0}
-    .hero{padding:70px 0 56px}
+  @media (min-width:600px){
+    .hero h1{font-size:48px}
+    .stories-scroll{padding:0 calc((100vw - 520px)/2 + 18px) 8px}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="wrap head-row">
-    <a class="brand" href="/"><img src="logo.png" alt="ゴルフのあいちゃん"><span>ゴルフのあいちゃん</span></a>
-    <a class="head-cta" href="https://lin.ee/5MkA79c">LINEで友だち追加</a>
-  </div>
+  <a class="brand" href="/">
+    <img src="logo.png" alt="">
+    <span>ゴルフのあいちゃん</span>
+  </a>
+  <a class="head-cta" href="https://lin.ee/5MkA79c">▶ LINE追加</a>
 </header>
 
 <section class="hero">
+  <span class="hero-stamp">月10本／<br>¥480!</span>
   <div class="wrap">
-    <span class="badge">⛳ LINEで完結／月額480円</span>
-    <h1>あなたのスイング、<br><span class="hl">AIがちゃんと見て</span>添削します。</h1>
-    <p class="lead">LINEに動画を送るだけ。AIコーチがあなたのスイングを7フェーズで添削し、最優先で直すべき1つとドリルまで教えてくれます。</p>
-    <div class="hero-meta">
-      <span>🎯 <b>7フェーズ評価</b></span>
-      <span>📱 <b>LINEで完結</b></span>
-      <span>🆓 <b>初回1本無料</b></span>
+    <span class="tag">⛳ AIスイング添削 × LINE</span>
+    <h1>そのスイング、<br>本気で<em>添削</em><br>してくれる人います？</h1>
+    <p class="lead">LINEに動画を送るだけ。AIコーチが7フェーズで本気の添削を返してくれます。</p>
+    <div class="meta">
+      <span>🎯 7フェーズ評価</span>
+      <span>📱 LINE完結</span>
+      <span>🆓 初回1本無料</span>
     </div>
     <div class="cta-row">
       <a class="cta cta-line" href="https://lin.ee/5MkA79c">▶ LINEで友だち追加（無料）</a>
-      <a class="cta cta-ghost" href="#howto">使い方を見る</a>
+      <a class="cta cta-ghost" href="#stories">どんなサービス？</a>
     </div>
-    <div class="hero-img">
-      <video src="demo_usage.mp4" poster="demo_preview.png" autoplay muted loop playsinline></video>
-    </div>
+  </div>
+  <div class="scroll-hint">SCROLL ↓</div>
+</section>
+
+<section id="stories" class="stories">
+  <div class="stories-eyebrow">▶ Story</div>
+  <h2 class="stories-title">3秒で分かる、あいちゃん。</h2>
+  <div class="stories-scroll">
+    <a href="#demo" class="story">
+      <div class="story-img" style="background-image:url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=600&q=75')"></div>
+      <span class="story-tag">⛳ 01</span>
+      <div class="story-content">
+        <span class="story-num">— その悩み</span>
+        <div class="story-title">スコアが、伸びない。</div>
+        <div class="story-desc">周りに教えてくれる人もいない。練習する方向が合ってるかも分からない。</div>
+      </div>
+    </a>
+    <a href="#demo" class="story">
+      <div class="story-img" style="background-image:url('https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=600&q=75')"></div>
+      <span class="story-tag">📱 02</span>
+      <div class="story-content">
+        <span class="story-num">— 解決策</span>
+        <div class="story-title">動画を、送るだけ。</div>
+        <div class="story-desc">LINEで20秒のスイング動画を送る。それだけで全てが始まります。</div>
+      </div>
+    </a>
+    <a href="#chat" class="story">
+      <div class="story-img" style="background-image:url('https://images.unsplash.com/photo-1592919505780-303950717480?w=600&q=75')"></div>
+      <span class="story-tag">🎯 03</span>
+      <div class="story-content">
+        <span class="story-num">— 結果</span>
+        <div class="story-title">7フェーズで添削。</div>
+        <div class="story-desc">アドレスからフィニッシュまで、AIが本気で見てコメントを返します。</div>
+      </div>
+    </a>
+    <a href="#price" class="story">
+      <div class="story-img" style="background-image:url('https://images.unsplash.com/photo-1530028828-25e8270793c5?w=600&q=75')"></div>
+      <span class="story-tag">💰 04</span>
+      <div class="story-content">
+        <span class="story-num">— 料金</span>
+        <div class="story-title">月¥480、月10本。</div>
+        <div class="story-desc">スタバ1杯ぶんで、毎週マイクロコーチに見てもらえる。初回1本は無料。</div>
+      </div>
+    </a>
   </div>
 </section>
 
-<section id="howto">
-  <div class="wrap">
-    <div class="eyebrow">— HOW IT WORKS</div>
-    <h2 class="title"><span class="hl">3ステップ</span>で添削が届く</h2>
-    <div class="steps">
-      <div class="step"><div class="step-num">1</div><div><h3>「解析メニュー」を選ぶ</h3><p>自分解析／プロ比較／過去比較／質問の4つから選びます。</p></div></div>
-      <div class="step"><div class="step-num">2</div><div><h3>スイング動画を送る（20秒以内）</h3><p>正面か後方からの動画1本でOK。プロ比較なら参考動画もセットで。</p></div></div>
-      <div class="step"><div class="step-num">3</div><div><h3>AIの添削が連続で届く</h3><p>総合コメント／フェーズ別評価／改善点TOP3／最優先で直す1つ／練習方法 の順に。</p></div></div>
-    </div>
-  </div>
-
-  <!-- 写真ストリップ -->
-  <div class="wrap" style="margin-top:30px">
-    <div class="photo-strip">
-      <div style="background-image:url('https://images.unsplash.com/photo-1592919505780-303950717480?w=800&q=70')"></div>
-      <div style="background-image:url('https://images.unsplash.com/photo-1535132011086-b8818f016104?w=600&q=70')"></div>
-      <div style="background-image:url('https://images.unsplash.com/photo-1530028828-25e8270793c5?w=600&q=70')"></div>
-    </div>
+<section id="demo" class="demo-sec">
+  <div class="demo-tag">▶ Demo</div>
+  <h2>これ、<br>あいちゃんの使い方。</h2>
+  <p>動画を送って、添削が連続でドサッと届く。1〜2分でスマホで完結。</p>
+  <div class="phone-frame">
+    <video src="demo_usage.mp4" poster="demo_preview.png" autoplay muted loop playsinline></video>
   </div>
 </section>
 
-<section class="review-sec">
+<section id="chat" class="chat-sec">
   <div class="wrap">
-    <div class="eyebrow">— SAMPLE</div>
-    <h2 class="title">実際、こんな添削が届きます</h2>
-    <p class="sub">これは質問モードでよく届く返信の一部。動画を見たうえで、PGAレベルのコーチ口調で具体的に教えてくれます。</p>
-    <div class="review-card">
-      <div class="from">📱 LINEに届く返信の抜粋</div>
+    <div class="chat-tag">▶ Sample</div>
+    <h2 class="chat-title">届く添削、<br>こんな感じ。</h2>
+
+    <div class="chat-bubble from-user">
+      動画送ったよ〜🎥
+    </div>
+
+    <div class="chat-bubble">
+      <div class="chat-from">あいちゃん</div>
       <p><b>💬 総合コメント</b></p>
       <p>体の捻転と下半身の使い方は本当にいいね！PGAの選手にも近い回り方ができてる。あとは<span class="em">トップでクラブが少し寝ている</span>だけで、ここが直ればキレッキレの球になるよ。</p>
-      <div class="divline"></div>
+    </div>
+
+    <div class="chat-bubble">
+      <div class="chat-from">あいちゃん</div>
       <p><b>🎯 最優先で直す1つ</b></p>
       <p>「テイクバックでクラブを体の内側に引きすぎ」を直そう。理由：これがその後のレイドオフ（トップでクラブが左を向く現象）の原因になっています。</p>
-      <div class="divline"></div>
+    </div>
+
+    <div class="chat-bubble">
+      <div class="chat-from">あいちゃん</div>
       <p><b>🏋️ おすすめ練習</b></p>
       <p>スティックゲートドリル。ボールの外側にクラブを1本置いて、それに当たらないよう真っすぐ引く。10回連続できればOK。</p>
     </div>
   </div>
 </section>
 
-<section>
+<section id="price" class="price-sec">
   <div class="wrap">
-    <div class="eyebrow">— PRICING</div>
-    <h2 class="title">料金</h2>
-    <div class="pricing">
-      <div class="plan">
-        <h3>無料トライアル</h3>
-        <div class="price">¥0<small> / 1回</small></div>
-        <ul><li>解析1本（生涯1回）</li><li>すべてのモード使える</li></ul>
+    <div class="price-eyebrow">▶ Price</div>
+    <h2>料金</h2>
+    <p class="center">スタバ1杯分で、毎週コーチに見てもらえる。</p>
+    <div class="plans">
+      <div class="plan free">
+        <h3>FREE</h3>
+        <div class="price">¥0<small>/1回</small></div>
+        <ul>
+          <li>解析1本（生涯1回）</li>
+          <li>全モード使える</li>
+        </ul>
       </div>
       <div class="plan paid">
-        <h3>有料プラン</h3>
-        <div class="price">¥480<small> / 月</small></div>
-        <ul><li>月10本まで解析</li><li>すべてのモード使える</li><li>いつでも解約可</li></ul>
+        <span class="plan-stamp">人気!</span>
+        <h3>PRO</h3>
+        <div class="price">¥480<small>/月</small></div>
+        <ul>
+          <li>月10本</li>
+          <li>全モード</li>
+          <li>いつでも解約OK</li>
+        </ul>
       </div>
     </div>
   </div>
 </section>
 
-<section>
+<section class="faq-sec">
   <div class="wrap">
-    <div class="eyebrow">— FAQ</div>
-    <h2 class="title">よくある質問</h2>
+    <div class="faq-eyebrow">▶ FAQ</div>
+    <h2>よくある質問</h2>
     <details class="qa"><summary>動画はサーバーに残りますか？</summary><div class="qa-body">解析が終わるとすぐ削除しています。残るのはAIの添削テキストだけです。</div></details>
     <details class="qa"><summary>どのクラブでも見られますか？</summary><div class="qa-body">ドライバー〜ウェッジまで対応。動画は20秒以内、できればスイング全体が映るアングルでお願いします。</div></details>
     <details class="qa"><summary>プロ比較のプロ動画はどこから入手しますか？</summary><div class="qa-body">YouTube等で見つけたお手本動画を、自分でダウンロードしてLINEに送ってもらう形です。あいちゃんが両方を見比べて添削します。</div></details>
@@ -251,11 +415,12 @@
   </div>
 </section>
 
-<section>
+<section class="cta-sec">
   <div class="wrap">
-    <div class="banner">
-      <h2>まずは1本、無料で試してみてください</h2>
-      <p>登録は30秒。動画を送るだけで、AIコーチの本気の添削が届きます。</p>
+    <div class="cta-banner">
+      <div class="label">▶ Get Started</div>
+      <h2>まずは1本、<br>無料で試してみて。</h2>
+      <p>登録は30秒。動画を送るだけ。</p>
       <a class="cta cta-line" href="https://lin.ee/5MkA79c" style="background:#fff;color:var(--green-deep)">▶ LINEで友だち追加</a>
     </div>
   </div>
@@ -263,7 +428,7 @@
 
 <footer>
   <div class="wrap">
-    <a href="privacy.html">プライバシーポリシー</a>・<a href="tokushoho.html">特定商取引法に基づく表記</a>・<a href="https://lin.ee/5MkA79c">LINE</a>
+    <a href="privacy.html">プライバシー</a>・<a href="tokushoho.html">特商法</a>・<a href="https://lin.ee/5MkA79c">LINE</a>
     <div class="small">© 合同会社シクミヤ ／ ゴルフのあいちゃん</div>
   </div>
 </footer>
