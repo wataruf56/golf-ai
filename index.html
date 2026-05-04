@@ -13,11 +13,12 @@
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   :root{
-    --bg:#f7f5ef;--ink:#1d2a24;--green:#2f7a52;--green-deep:#1f5236;
+    --bg:#f7f5ef;--ink:#1d2a24;--green:#2f7a52;--green-deep:#0d3520;
     --line:#06c755;--gray:#6b6b6b;--border:#e3ddd1;
   }
   html{scroll-behavior:smooth}
@@ -28,10 +29,10 @@
   h1,h2,h3{font-family:'Zen Maru Gothic','Noto Sans JP',sans-serif;line-height:1.4;letter-spacing:.02em}
   a{color:inherit}
   img,video{display:block;max-width:100%;height:auto}
-  .wrap{max-width:680px;margin:0 auto;padding:0 20px}
+  .wrap{max-width:680px;margin:0 auto;padding:0 20px;position:relative;z-index:2}
 
   header{
-    padding:16px 0;background:rgba(247,245,239,.92);backdrop-filter:saturate(140%) blur(8px);
+    padding:14px 0;background:rgba(247,245,239,.92);backdrop-filter:saturate(140%) blur(8px);
     border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
   }
   .head-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -40,67 +41,113 @@
   .brand span{font-family:'Zen Maru Gothic';font-weight:700;font-size:15px}
   .head-cta{background:var(--line);color:#fff;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap}
 
-  .hero{padding:42px 0 32px}
-  .badge{display:inline-block;padding:4px 11px;border-radius:999px;background:#fff;border:1px solid var(--border);font-size:12px;color:var(--green-deep);font-weight:700;margin-bottom:14px}
-  .hero h1{font-size:clamp(24px,6vw,32px);font-weight:900}
-  .hero h1 .hl{background:linear-gradient(transparent 60%,#ffe48a 60%);padding:0 .15em}
-  .hero p.lead{margin-top:14px;color:#3a4a42;line-height:1.9}
-  .hero-meta{margin-top:12px;font-size:12.5px;color:var(--gray);display:flex;flex-wrap:wrap;gap:6px 14px}
-  .hero-meta b{color:var(--green-deep);font-weight:700}
-  .cta-row{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px}
-  .cta{display:inline-flex;align-items:center;gap:8px;padding:13px 20px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14.5px;transition:transform .15s,box-shadow .15s}
-  .cta-line{background:var(--line);color:#fff;box-shadow:0 4px 14px rgba(6,199,85,.3)}
-  .cta-line:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(6,199,85,.4)}
-  .cta-ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
-  .hero-img{margin-top:26px;border-radius:16px;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,.08)}
+  /* ヒーロー：実写ゴルフ場をフルブリード背景に */
+  .hero{
+    position:relative;color:#fff;padding:90px 0 70px;overflow:hidden;
+    background:
+      linear-gradient(180deg,rgba(13,53,32,.6) 0%,rgba(13,53,32,.85) 100%),
+      url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=1600&q=80') center/cover no-repeat;
+  }
+  .hero::after{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 70% 20%,rgba(255,228,138,.12),transparent 60%);
+    pointer-events:none;
+  }
+  .hero .badge{display:inline-block;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.18);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.3);font-size:12px;color:#fff;font-weight:700;margin-bottom:16px}
+  .hero h1{font-size:clamp(28px,7vw,38px);font-weight:900;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.3)}
+  .hero h1 .hl{background:linear-gradient(transparent 60%,rgba(255,228,138,.5) 60%);padding:0 .15em}
+  .hero p.lead{margin-top:14px;color:#e8f3ec;line-height:1.9}
+  .hero-meta{margin-top:14px;font-size:12.5px;color:#cce8d9;display:flex;flex-wrap:wrap;gap:6px 14px}
+  .hero-meta b{color:#fff;font-weight:700}
+  .cta-row{margin-top:24px;display:flex;flex-wrap:wrap;gap:10px}
+  .cta{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14.5px;transition:transform .15s,box-shadow .15s}
+  .cta-line{background:var(--line);color:#fff;box-shadow:0 6px 20px rgba(6,199,85,.4)}
+  .cta-line:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(6,199,85,.5)}
+  .cta-ghost{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(4px)}
+  .hero-img{margin-top:30px;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.4);border:3px solid rgba(255,255,255,.2)}
   .hero-img video{width:100%;display:block;background:#000}
 
-  section{padding:36px 0}
-  .eyebrow{font-size:11px;letter-spacing:.18em;color:var(--green);font-weight:700;text-transform:uppercase;margin-bottom:6px}
-  h2.title{font-size:clamp(20px,4.5vw,26px);font-weight:900;margin-bottom:16px}
+  section{padding:50px 0;position:relative}
+  .eyebrow{font-size:11px;letter-spacing:.18em;color:var(--green);font-weight:700;text-transform:uppercase;margin-bottom:8px}
+  h2.title{font-size:clamp(22px,4.8vw,28px);font-weight:900;margin-bottom:18px}
   h2.title .hl{background:linear-gradient(transparent 60%,#ffe48a 60%);padding:0 .15em}
 
+  /* 写真ストリップ：実写ゴルフ場を3枚並べる */
+  .photo-strip{
+    display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:6px;
+    margin:0 -20px;padding:0 20px;height:140px;overflow:hidden;
+  }
+  .photo-strip div{background-size:cover;background-position:center;border-radius:8px}
+
+  /* 3ステップ */
   .steps{display:grid;gap:12px}
-  .step{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
-  .step-num{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:900;font-family:'Zen Maru Gothic';font-size:16px}
+  .step{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+  .step-num{flex:0 0 36px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-deep));color:#fff;display:grid;place-items:center;font-weight:900;font-family:'Zen Maru Gothic';font-size:16px}
   .step h3{font-size:15px;margin-bottom:4px}
   .step p{font-size:13px;color:#4a5550;line-height:1.75}
 
-  .modes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-  .mode{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
-  .mode .icon{font-size:20px;margin-bottom:4px}
-  .mode h3{font-size:14.5px;margin-bottom:4px}
-  .mode p{font-size:12px;color:#4a5550;line-height:1.65}
+  /* 添削例セクション：背景に薄くゴルファー画像 */
+  .review-sec{
+    color:#fff;
+    background:
+      linear-gradient(180deg,rgba(13,53,32,.92),rgba(13,53,32,.96)),
+      url('https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=1600&q=80') center/cover no-repeat fixed;
+    margin:30px 0;padding:50px 0;border-radius:0;
+  }
+  .review-sec .eyebrow{color:#ffe48a}
+  .review-sec h2.title{color:#fff}
+  .review-sec p.sub{color:#cce8d9;line-height:1.95;margin-bottom:22px}
+  .review-card{
+    background:rgba(255,255,255,.97);color:var(--ink);
+    border-radius:16px;padding:22px;font-size:14px;line-height:1.95;
+    box-shadow:0 14px 40px rgba(0,0,0,.4);
+  }
+  .review-card .from{font-size:11px;color:var(--gray);margin-bottom:10px;letter-spacing:.05em}
+  .review-card .divline{border-top:1px dashed #d8cfb8;margin:14px 0}
+  .review-card .em{background:#fff5e0;padding:0 .2em}
+  .review-card b{color:var(--green-deep)}
 
+  /* 料金 */
   .pricing{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .plan{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px}
+  .plan{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,.04)}
   .plan.paid{background:linear-gradient(160deg,#fff8f0,#ffeed5);border-color:#f1d4a4}
   .plan h3{font-size:15px;margin-bottom:4px}
-  .plan .price{font-family:'Zen Maru Gothic';font-size:24px;font-weight:900;margin:6px 0}
+  .plan .price{font-family:'Zen Maru Gothic';font-size:26px;font-weight:900;margin:6px 0}
   .plan .price small{font-size:11px;font-weight:500;color:var(--gray)}
   .plan ul{list-style:none;font-size:12.5px;color:#3a4a42;margin-top:8px}
   .plan li{padding:3px 0 3px 16px;position:relative}
   .plan li::before{content:'';position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:var(--green)}
 
-  .qa{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:8px}
-  .qa summary{cursor:pointer;padding:14px 18px;font-weight:700;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center}
-  .qa summary::after{content:'+';color:var(--green);font-size:20px;font-weight:300}
+  /* FAQ */
+  .qa{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+  .qa summary{cursor:pointer;padding:16px 18px;font-weight:700;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .qa summary::after{content:'+';color:var(--green);font-size:20px;font-weight:300;flex-shrink:0}
   .qa[open] summary::after{content:'−'}
   .qa[open] summary{border-bottom:1px solid var(--border)}
-  .qa-body{padding:12px 18px 16px;font-size:13px;color:#4a5550;line-height:1.8}
+  .qa-body{padding:14px 18px 16px;font-size:13px;color:#4a5550;line-height:1.85}
 
-  .banner{background:linear-gradient(135deg,var(--green-deep),var(--green));color:#fff;border-radius:18px;padding:30px 22px;text-align:center}
-  .banner h2{color:#fff;font-size:20px;margin-bottom:6px}
-  .banner p{color:#cce8d9;margin-bottom:16px;font-size:13.5px;line-height:1.8}
+  /* CTAバナー：実写背景 */
+  .banner{
+    color:#fff;border-radius:20px;padding:46px 24px;text-align:center;
+    background:
+      linear-gradient(135deg,rgba(31,82,54,.85),rgba(13,53,32,.9)),
+      url('https://images.unsplash.com/photo-1593111774240-d529f12cf4bb?w=1600&q=80') center/cover no-repeat;
+    box-shadow:0 14px 40px rgba(0,0,0,.15);
+  }
+  .banner h2{color:#fff;font-size:22px;margin-bottom:8px;text-shadow:0 2px 12px rgba(0,0,0,.3)}
+  .banner p{color:#e8f3ec;margin-bottom:20px;font-size:14px;line-height:1.85}
 
-  footer{padding:28px 0 50px;text-align:center;color:var(--gray);font-size:12px}
+  footer{padding:30px 0 50px;text-align:center;color:var(--gray);font-size:12px}
   footer a{color:var(--gray);margin:0 6px;text-decoration:underline}
   footer .small{margin-top:10px;font-size:11px;color:#a8a8a8}
 
   @media (max-width:520px){
-    .modes{grid-template-columns:1fr}
     .pricing{grid-template-columns:1fr}
-    section{padding:28px 0}
+    .photo-strip{height:100px;grid-template-columns:1.2fr 1fr}
+    .photo-strip div:nth-child(3){display:none}
+    .review-sec{background-attachment:scroll}
+    section{padding:40px 0}
+    .hero{padding:70px 0 56px}
   }
 </style>
 </head>
@@ -138,22 +185,37 @@
     <div class="eyebrow">— HOW IT WORKS</div>
     <h2 class="title"><span class="hl">3ステップ</span>で添削が届く</h2>
     <div class="steps">
-      <div class="step"><div class="step-num">1</div><div><h3>「解析メニュー」を選ぶ</h3><p>自分解析／プロ比較／過去比較／質問モードの4つから選びます。</p></div></div>
+      <div class="step"><div class="step-num">1</div><div><h3>「解析メニュー」を選ぶ</h3><p>自分解析／プロ比較／過去比較／質問の4つから選びます。</p></div></div>
       <div class="step"><div class="step-num">2</div><div><h3>スイング動画を送る（20秒以内）</h3><p>正面か後方からの動画1本でOK。プロ比較なら参考動画もセットで。</p></div></div>
       <div class="step"><div class="step-num">3</div><div><h3>AIの添削が連続で届く</h3><p>総合コメント／フェーズ別評価／改善点TOP3／最優先で直す1つ／練習方法 の順に。</p></div></div>
     </div>
   </div>
+
+  <!-- 写真ストリップ -->
+  <div class="wrap" style="margin-top:30px">
+    <div class="photo-strip">
+      <div style="background-image:url('https://images.unsplash.com/photo-1592919505780-303950717480?w=800&q=70')"></div>
+      <div style="background-image:url('https://images.unsplash.com/photo-1535132011086-b8818f016104?w=600&q=70')"></div>
+      <div style="background-image:url('https://images.unsplash.com/photo-1530028828-25e8270793c5?w=600&q=70')"></div>
+    </div>
+  </div>
 </section>
 
-<section>
+<section class="review-sec">
   <div class="wrap">
-    <div class="eyebrow">— MODES</div>
-    <h2 class="title">4つの解析モード</h2>
-    <div class="modes">
-      <div class="mode"><div class="icon">⛳</div><h3>自分解析</h3><p>動画1本で7フェーズの良い点・改善点を全部洗い出します。</p></div>
-      <div class="mode"><div class="icon">🏆</div><h3>プロ比較</h3><p>プロのお手本動画と並べ、どこが違うかを具体的に。</p></div>
-      <div class="mode"><div class="icon">📈</div><h3>過去比較</h3><p>過去のスイングと今回を比較して成長を確認。</p></div>
-      <div class="mode"><div class="icon">💬</div><h3>質問モード</h3><p>動画を見た上で、自由質問にAIが答えます。</p></div>
+    <div class="eyebrow">— SAMPLE</div>
+    <h2 class="title">実際、こんな添削が届きます</h2>
+    <p class="sub">これは質問モードでよく届く返信の一部。動画を見たうえで、PGAレベルのコーチ口調で具体的に教えてくれます。</p>
+    <div class="review-card">
+      <div class="from">📱 LINEに届く返信の抜粋</div>
+      <p><b>💬 総合コメント</b></p>
+      <p>体の捻転と下半身の使い方は本当にいいね！PGAの選手にも近い回り方ができてる。あとは<span class="em">トップでクラブが少し寝ている</span>だけで、ここが直ればキレッキレの球になるよ。</p>
+      <div class="divline"></div>
+      <p><b>🎯 最優先で直す1つ</b></p>
+      <p>「テイクバックでクラブを体の内側に引きすぎ」を直そう。理由：これがその後のレイドオフ（トップでクラブが左を向く現象）の原因になっています。</p>
+      <div class="divline"></div>
+      <p><b>🏋️ おすすめ練習</b></p>
+      <p>スティックゲートドリル。ボールの外側にクラブを1本置いて、それに当たらないよう真っすぐ引く。10回連続できればOK。</p>
     </div>
   </div>
 </section>
@@ -182,7 +244,10 @@
     <div class="eyebrow">— FAQ</div>
     <h2 class="title">よくある質問</h2>
     <details class="qa"><summary>動画はサーバーに残りますか？</summary><div class="qa-body">解析が終わるとすぐ削除しています。残るのはAIの添削テキストだけです。</div></details>
+    <details class="qa"><summary>どのクラブでも見られますか？</summary><div class="qa-body">ドライバー〜ウェッジまで対応。動画は20秒以内、できればスイング全体が映るアングルでお願いします。</div></details>
+    <details class="qa"><summary>プロ比較のプロ動画はどこから入手しますか？</summary><div class="qa-body">YouTube等で見つけたお手本動画を、自分でダウンロードしてLINEに送ってもらう形です。あいちゃんが両方を見比べて添削します。</div></details>
     <details class="qa"><summary>解約はどうやって？</summary><div class="qa-body">LINEで「#解約」と送るだけ。ご登録メールアドレスにStripeの解約リンクが届きます。</div></details>
+    <details class="qa"><summary>無料で何回まで使えますか？</summary><div class="qa-body">生涯1回、無料で添削を受けられます。気に入ったら月額480円のプラン（月10本）にアップグレードしてください。</div></details>
   </div>
 </section>
 
