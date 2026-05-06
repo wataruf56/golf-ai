@@ -9,7 +9,10 @@
 function 解析サービス共有シークレット取得_() {
   const props = PropertiesService.getScriptProperties();
   const secret = props.getProperty(PROP_解析サービス共有シークレット) || "";
-  return String(secret);
+  if (secret) return String(secret);
+  // 【ステージング限定】Script Properties未設定時のフォールバック値
+  // swing-analyzer Cloud Run の SHARED_SECRET 環境変数と一致
+  return "analyze_20251229_wataru_k8P3mZ";
 }
 
 function テキスト回答サービス共有シークレット取得_() {

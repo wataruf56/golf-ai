@@ -6,6 +6,60 @@
  * - ③ pendingStep：SELF時の「比較_自分動画待ち」を廃止し「ステップ_自分動画待ち」に分離
  */
 
+/**
+ * GET エンドポイント：管理用（ステージング限定）
+ *   ?action=install → 自動解析ワーカーの毎分トリガーをインストール
+ *   ?action=worker  → 自動解析ワーカーを今すぐ1回実行
+ *   ?action=status  → トリガー一覧を返す
+ */
+function doGet(e) {
+  const action = (e && e.parameter && e.parameter.action) || "";
+  const out = ContentService.createTextOutput();
+  out.setMimeType(ContentService.MimeType.JSON);
+
+  try {
+    if (action === "install") {
+      // 既存のトリガーを削除してから再インストール（冪等）
+      const triggers = ScriptApp.getProjectTriggers();
+      let removed = 0;
+      triggers.forEach(t => {
+        if (t.getHandlerFunction() === "自動解析ワーカー") {
+          ScriptApp.deleteTrigger(t); removed++;
+        }
+      });
+      ScriptApp.newTrigger("自動解析ワーカー").timeBased().everyMinutes(1).create();
+      out.setContent(JSON.stringify({ ok: true, action: "install", removed, installed: 1 }));
+    } else if (action === "worker") {
+      自動解析ワーカー();
+      out.setContent(JSON.stringify({ ok: true, action: "worker", message: "executed" }));
+    } else if (action === "status") {
+      const triggers = ScriptApp.getProjectTriggers().map(t => ({
+        fn: t.getHandlerFunction(),
+        type: String(t.getEventType()),
+      }));
+      out.setContent(JSON.stringify({ ok: true, triggers }));
+    } else if (action === "logs") {
+      // 直近30件のWebhookログ
+      try {
+        const ss = SpreadsheetApp.openById(WEBHOOKログ_スプレッドシートID);
+        const sh = ss.getSheetByName(WEBHOOKログ_シート名);
+        const lastRow = sh.getLastRow();
+        const start = Math.max(2, lastRow - 30);
+        const num = lastRow - start + 1;
+        const data = num > 0 ? sh.getRange(start, 1, num, 4).getValues() : [];
+        out.setContent(JSON.stringify({ ok: true, rows: data, lastRow }));
+      } catch (err) {
+        out.setContent(JSON.stringify({ ok: false, error: String(err) }));
+      }
+    } else {
+      out.setContent(JSON.stringify({ ok: false, error: "unknown action" }));
+    }
+  } catch (err) {
+    out.setContent(JSON.stringify({ ok: false, error: String(err) }));
+  }
+  return out;
+}
+
 function doPost(e) {
   Webhookログ出力_("doPost", "開始", {});
   let replyToken = "";
