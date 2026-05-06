@@ -18,6 +18,7 @@ const PROP_テストモード = "TEST_MODE";
 const PROP_Stripeシークレットキー = "STRIPE_SECRET_KEY";
 const PROP_Stripe_Webhookシークレット = "STRIPE_WEBHOOK_SECRET";
 const PROP_Stripe_Price_ID = "STRIPE_PRICE_ID";
+const PROP_ポーズ描画サービス共有シークレット = "POSE_RENDERER_SHARED_SECRET";
 
 /* テストモード（Script Property TEST_MODE=true で有効） */
 const テストモード_返信文 = "今回のテスト用だけで解析しました。";
@@ -45,6 +46,8 @@ const 解析サービスURL =
   "https://staging---swing-analyzer-4amu3rxdsq-an.a.run.app/analyze";
 const テキスト回答サービスURL =
   "https://staging---text-answer-4amu3rxdsq-an.a.run.app/answer";
+const ポーズ描画サービスURL =
+  "https://staging---pose-renderer-4amu3rxdsq-an.a.run.app/render";
 
 /* Worker */
 const ワーカー_最大件数_1回 = 3;

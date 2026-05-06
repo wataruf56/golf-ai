@@ -18,6 +18,50 @@ function テキスト回答サービス共有シークレット取得_() {
   return String(secret);
 }
 
+function ポーズ描画サービス共有シークレット取得_() {
+  const props = PropertiesService.getScriptProperties();
+  const secret = props.getProperty(PROP_ポーズ描画サービス共有シークレット) || "";
+  return String(secret);
+}
+
+/**
+ * pose-renderer Cloud Run を呼び出して、棒人間オーバーレイ動画と
+ * （可能なら）「ユーザー vs 理想」比較画像を生成する。
+ * 失敗時もエラーを投げず {ok:false, ...} を返す（メイン解析を止めないため）
+ */
+function ポーズ描画_実行_(gcsUri, reviewText) {
+  if (!gcsUri) return { ok: false, error: "gcsUri 空" };
+
+  const secret = ポーズ描画サービス共有シークレット取得_();
+  if (!secret) return { ok: false, error: "POSE_RENDERER_SHARED_SECRET 未設定" };
+
+  const payload = {
+    gcsUri: String(gcsUri),
+    reviewText: String(reviewText || ""),
+  };
+
+  try {
+    const res = CloudRun_JSON呼び出し_(ポーズ描画サービスURL, secret, payload);
+    if (res.code !== 200) {
+      Webhookログ出力_("ポーズ描画", "失敗 code=" + res.code, { body: String(res.text).slice(0, 300) });
+      return { ok: false, error: "code=" + res.code };
+    }
+    if (!res.json || !res.json.ok) {
+      Webhookログ出力_("ポーズ描画", "ok=false", { body: String(res.text).slice(0, 300) });
+      return { ok: false, error: "service returned ok=false" };
+    }
+    return {
+      ok: true,
+      videoUrl: res.json.videoUrl || "",
+      compareImageUrl: res.json.compareImageUrl || "",
+      priorityPhase: res.json.priorityPhase || "",
+    };
+  } catch (e) {
+    Webhookログ出力_("ポーズ描画", "例外", { err: String(e) });
+    return { ok: false, error: String(e) };
+  }
+}
+
 function CloudRun_JSON呼び出し_(URL, シークレット, payloadObj) {
   const options = {
     method: "post",

@@ -243,10 +243,45 @@ function 解析フェーズ実行_(messageId) {
   // const coachCheckText = コーチ観察P1toP10_生成_(v.userId, reviewText);
   const coachCheckText = "";
 
+  // ====================================================================
+  // 【ステージング限定】pose-renderer を呼び、棒人間オーバーレイ動画と
+  // 「ユーザー vs 理想」比較画像を生成。失敗してもメイン解析は中断しない。
+  // 動画が複数あるモードでは「自分動画」を使う（プロ動画は対象外）。
+  // ====================================================================
+  let poseVideoUrl = "";
+  let poseCompareUrl = "";
+  let posePriorityPhase = "";
+  try {
+    const ポーズ対象GCS = 自分GCS;
+    if (ポーズ対象GCS) {
+      const poseRes = ポーズ描画_実行_(ポーズ対象GCS, reviewText);
+      if (poseRes && poseRes.ok) {
+        poseVideoUrl = String(poseRes.videoUrl || "");
+        poseCompareUrl = String(poseRes.compareImageUrl || "");
+        posePriorityPhase = String(poseRes.priorityPhase || "");
+        Webhookログ出力_("ポーズ描画", "成功", {
+          videoId: v.id,
+          videoUrl: poseVideoUrl,
+          compareImageUrl: poseCompareUrl,
+          priorityPhase: posePriorityPhase,
+        });
+      } else {
+        Webhookログ出力_("ポーズ描画", "失敗（メイン解析は継続）", {
+          videoId: v.id, err: poseRes && poseRes.error,
+        });
+      }
+    }
+  } catch (e) {
+    Webhookログ出力_("ポーズ描画", "例外（メイン解析は継続）", { videoId: v.id, err: String(e) });
+  }
+
   動画更新_FS_(v.id, {
     status: { stringValue: 動画ステータス_解析完了 },
     reviewText: { stringValue: String(reviewText) },
     coachCheckText: { stringValue: String(coachCheckText || "") },
+    poseVideoUrl: { stringValue: poseVideoUrl },
+    poseCompareUrl: { stringValue: poseCompareUrl },
+    posePriorityPhase: { stringValue: posePriorityPhase },
     error: { stringValue: "" },
     lastTriedAt: { timestampValue: new Date().toISOString() },
   });
@@ -346,6 +381,10 @@ function 送信フェーズ実行_(messageId) {
   const モード = v.actionModeSnapshot || "";
   const 質問モードか = (モード === 動作モード_質問);
 
+  // ポーズ描画の結果（解析フェーズで生成済み）
+  const poseVideoUrl = String(v.poseVideoUrl || "");
+  const poseCompareUrl = String(v.poseCompareUrl || "");
+
   if (テストモード有効か_()) {
     // テストモード：テスト用メッセージ1通のみ
     LINEプッシュ送信実行_(v.userId, LINE送信用整形_(テストモード_返信文));
@@ -353,9 +392,25 @@ function 送信フェーズ実行_(messageId) {
     // 質問モード：分割しない
     LINEプッシュ送信実行_(v.userId, LINE送信用整形_(text));
   } else {
-    // 通常モード：区切り線で分割して連続push
-    const parts = レビュー分割_(text);
-    LINEプッシュ複数送信実行_(v.userId, parts.map(LINE送信用整形_));
+    // 通常モード：テキスト分割 → 末尾に「比較画像」「棒人間動画」を付ける
+    const parts = レビュー分割_(text).map(LINE送信用整形_);
+    const messages = parts.map(t => ({ type: "text", text: t }));
+    if (poseCompareUrl) {
+      messages.push({
+        type: "image",
+        originalContentUrl: poseCompareUrl,
+        previewImageUrl: poseCompareUrl,
+      });
+    }
+    if (poseVideoUrl && poseCompareUrl) {
+      // 動画メッセージは previewImageUrl（JPG/PNG）が必須なので、比較画像があるときだけ送る
+      messages.push({
+        type: "video",
+        originalContentUrl: poseVideoUrl,
+        previewImageUrl: poseCompareUrl,
+      });
+    }
+    LINEプッシュ_メッセージ配列送信_(v.userId, messages);
   }
   const nowIso = new Date().toISOString();
 

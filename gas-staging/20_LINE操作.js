@@ -121,6 +121,33 @@ function LINEプッシュ複数送信実行_(userId, texts) {
   }
 }
 
+/**
+ * 任意のメッセージオブジェクト配列を pushする（テキスト/画像/動画 混在可）
+ * 5通ずつチャンク分割して送信する。
+ * messages 例:
+ *   [{ type:"text", text:"..." },
+ *    { type:"image", originalContentUrl:"https://...", previewImageUrl:"https://..." },
+ *    { type:"video", originalContentUrl:"https://...", previewImageUrl:"https://..." }]
+ */
+function LINEプッシュ_メッセージ配列送信_(userId, messages) {
+  if (!userId) return;
+  const arr = (messages || []).filter(m => m && m.type);
+  if (!arr.length) return;
+  const url = LINE_API_BASE_URL + "/message/push";
+  const CHUNK = 5;
+  for (let i = 0; i < arr.length; i += CHUNK) {
+    const chunk = arr.slice(i, i + CHUNK);
+    const payload = { to: String(userId), messages: chunk };
+    const res = LINE_API_POST_(url, payload);
+    Webhookログ出力_("LINEプッシュ(混在)", "送信", {
+      code: res.code, count: chunk.length, chunkIndex: Math.floor(i / CHUNK),
+    });
+    if (res.code !== 200) {
+      Webhookログ出力_("LINEプッシュ(混在)", "失敗", { code: res.code, body: String(res.text).slice(0, 300) });
+    }
+  }
+}
+
 function LINE動画コンテンツ取得_(messageId) {
   if (!messageId) return { code: 400, blob: null };
 

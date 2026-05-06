@@ -275,6 +275,11 @@ function 動画取得_FS_(messageId) {
 
     videoDeleted: FS真偽取得_(doc, "videoDeleted"),
 
+    // ポーズ描画（pose-renderer）の生成物
+    poseVideoUrl: FS文字列取得_(doc, "poseVideoUrl"),
+    poseCompareUrl: FS文字列取得_(doc, "poseCompareUrl"),
+    posePriorityPhase: FS文字列取得_(doc, "posePriorityPhase"),
+
     retryCount: FS整数取得_(doc, "retryCount"),
     lastTriedAt: FS時刻取得ISO_(doc, "lastTriedAt"),
     error: FS文字列取得_(doc, "error"),
